@@ -242,7 +242,7 @@ const MangaReader = ({ comicSlug, chapter, onBackClick, onNextChapter, onPreviou
   useEffect(() => {
     const loadPages = async () => {
       try {
-        const response = await fetch(proxyUrl + `/api/komiku${chapter}`);
+        const response = await fetch(`/api/komiku${chapter}`);
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
