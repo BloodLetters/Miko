@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Home, Search, History } from 'lucide-react';
 import SearchHelper from "./Component/SearchHelper";
 
-const proxyUrl = "" //"https://thingproxy.freeboard.io/fetch/";
+const proxyUrl = ""; //"https://thingproxy.freeboard.io/fetch/";
 
 const ComicInfoPage = ({ comicInfo, onBackClick, onChapterClick }) => {
   if (!comicInfo) {
@@ -242,8 +242,8 @@ const MangaReader = ({ comicSlug, chapter, onBackClick, onNextChapter, onPreviou
   useEffect(() => {
     const loadPages = async () => {
       try {
-        console.log(chapter)
-        const response = await fetch(`/api/komiku/${chapter}`);
+        const fixedChapterURI = chapter.startsWith('/') ? chapter.slice(1) : chapter;
+        const response = await fetch(`/api/komiku/${fixedChapterURI}`);
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -321,13 +321,17 @@ const App = () => {
   const [selectedComic, setSelectedComic] = useState(null);
   const [readingChapter, setReadingChapter] = useState(null);
   const [comicInfo, setComicInfo] = useState(null);
+  const [previousInfo, setPreviousInfo] = useState(null);
 
   const fetchComicInfo = async (comicSlug) => {
     try {
-      const response = await fetch(`/api/fly${comicSlug}${comicSlug}`);
+      const fixedComicURI = comicSlug.startsWith('/') ? comicSlug.slice(1) : comicSlug;
+      console.log(fixedComicURI);
+      const response = await fetch(`https://komiku-api.fly.dev/api/comic/info/${fixedComicURI}`);
       const data = await response.json();
       if (data.success) {
         setComicInfo(data.data);
+        setPreviousInfo(data.data); // Store the comic info for back navigation
       }
     } catch (error) {
       console.error("Error fetching comic info:", error);
@@ -348,12 +352,20 @@ const App = () => {
   const handleBackClick = () => {
     if (currentPage === 'reader') {
       setCurrentPage('comic-info');
+      setComicInfo(previousInfo); // Restore the previous comic info
+      setReadingChapter(null);
+    } else if (currentPage === 'comic-info') {
+      setCurrentPage('search');
+      setSelectedComic(null);
+      setComicInfo(null);
+      setPreviousInfo(null);
     } else {
       setCurrentPage('home');
+      setSelectedComic(null);
+      setReadingChapter(null);
+      setComicInfo(null);
+      setPreviousInfo(null);
     }
-    setSelectedComic(null);
-    setReadingChapter(null);
-    setComicInfo(null);
   };
 
   const handleNextChapter = () => {
