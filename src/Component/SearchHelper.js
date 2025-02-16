@@ -11,7 +11,7 @@ const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) =
 
   const fetchPopularComics = async () => {
     try {
-      const response = await axios.get(proxyUrl + "https://komiku.id/");
+      const response = await axios.get("/api/komiku/");
       const cleanHTML = DOMPurify.sanitize(response.data);
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHTML, "text/html");
@@ -67,7 +67,7 @@ const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) =
     setError(null);
 
     try {
-      const response = await axios.get(proxyUrl + `https://api.komiku.id/?post_type=manga&s=${encodeURIComponent(searchTerm)}`);
+      const response = await axios.get(proxyUrl + `/api/komiku-api/?post_type=manga&s=${encodeURIComponent(searchTerm)}`);
       const cleanHTML = DOMPurify.sanitize(response.data);
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHTML, "text/html");

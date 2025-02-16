@@ -1,0 +1,17 @@
+{
+    "rewrites": [
+      {
+        "source": "/api/komiku/:path*",
+        "destination": "https://komiku.id/:path*"
+      },
+      {
+        "source": "/api/komiku-api/:path*",
+        "destination": "https://api.komiku.id/:path*"
+      },
+      {
+        "source": "/api/fly/:path*",
+        "destination": "https://komiku-api.fly.dev/api/comic/info/:path*"
+      }
+    ]
+  }
+  

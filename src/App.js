@@ -242,7 +242,7 @@ const MangaReader = ({ comicSlug, chapter, onBackClick, onNextChapter, onPreviou
   useEffect(() => {
     const loadPages = async () => {
       try {
-        const response = await fetch(proxyUrl + `https://komiku.id${chapter}`);
+        const response = await fetch(proxyUrl + `/api/komiku${chapter}`);
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -323,7 +323,7 @@ const App = () => {
 
   const fetchComicInfo = async (comicSlug) => {
     try {
-      const response = await fetch(`https://komiku-api.fly.dev/api/comic/info${comicSlug}`);
+      const response = await fetch(`/api/fly${comicSlug}${comicSlug}`);
       const data = await response.json();
       if (data.success) {
         setComicInfo(data.data);
