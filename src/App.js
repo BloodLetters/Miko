@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Home, Search, History } from 'lucide-react';
-import SearchHelper from "./Component/SearchHelper";
+import SearchHelper from "./SearchHelper.js";
 
 const proxyUrl = ""; //"https://thingproxy.freeboard.io/fetch/";
 
