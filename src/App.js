@@ -242,8 +242,8 @@ const MangaReader = ({ comicSlug, chapter, onBackClick, onNextChapter, onPreviou
   useEffect(() => {
     const loadPages = async () => {
       try {
-        const cleanUrl = chapter.replace(/^\/|\/$/g, '');
-        const response = await fetch(`/api/komiku/${cleanUrl}`);
+        const fixedChapterURI = chapter.startsWith('/') ? chapter.slice(1) : chapter;
+        const response = await fetch(`/api/komiku/${fixedChapterURI}`);
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");

@@ -6,7 +6,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: 'https://komiku.id',
       changeOrigin: true,
-      pathRewrite: { '^/api/komiku': '' },
+      pathRewrite: (path) => path.replace(/^\/api\/komiku/, ''),
     })
   );
 
@@ -15,7 +15,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: 'https://api.komiku.id',
       changeOrigin: true,
-      pathRewrite: { '^/api/komiku-api': '' },
+      pathRewrite: (path) => path.replace(/^\/api\/komiku-api/, ''),
     })
   );
 
@@ -24,7 +24,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: 'https://komiku-api.fly.dev',
       changeOrigin: true,
-      pathRewrite: { '^/api/fly': '/api/fly' },
+      pathRewrite: (path) => path.replace(/^\/api\/comic/, '/api/fly'),
     })
   );
 };
