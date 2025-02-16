@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Home, Search, History } from 'lucide-react';
 import SearchHelper from "./Component/SearchHelper";
 
-const proxyUrl = "https://thingproxy.freeboard.io/fetch/";
+const proxyUrl = "" //"https://thingproxy.freeboard.io/fetch/";
 
 const ComicInfoPage = ({ comicInfo, onBackClick, onChapterClick }) => {
   if (!comicInfo) {

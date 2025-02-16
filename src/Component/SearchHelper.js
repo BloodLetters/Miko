@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
 
-const proxyUrl = "https://thingproxy.freeboard.io/fetch/";
+const proxyUrl = "" //"https://thingproxy.freeboard.io/fetch/";
 
 const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) => {
   const [results, setResults] = useState([]);
