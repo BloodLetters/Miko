@@ -24,7 +24,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: 'https://komiku-api.fly.dev',
       changeOrigin: true,
-      pathRewrite: { '^/api/comic': '/api/comic' },
+      pathRewrite: { '^/api/fly': '/api/fly' },
     })
   );
 };

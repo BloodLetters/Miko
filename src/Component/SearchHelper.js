@@ -13,6 +13,7 @@ const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) =
     try {
       const response = await axios.get("/api/komiku/");
       const cleanHTML = DOMPurify.sanitize(response.data);
+      
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHTML, "text/html");
 
