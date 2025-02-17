@@ -1,32 +1,16 @@
 {
-    "trailingSlash": false,
     "rewrites": [
         {
             "source": "/api/komiku/:path*",
-            "destination": "https://komiku.id/:path*",
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type"
-            }
+            "destination": "https://komiku.id/:path*"
         },
         {
             "source": "/api/komiku-api/:path*",
-            "destination": "https://api.komiku.id/:path*",
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type"
-            }
+            "destination": "https://api.komiku.id/:path*"
         },
         {
             "source": "/api/fly/:path*",
-            "destination": "https://komiku-api.fly.dev/api/comic/info/:path*",
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type"
-            }
+            "destination": "https://komiku-api.fly.dev/api/comic/info/:path*"
         }
     ]
 }

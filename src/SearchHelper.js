@@ -63,27 +63,54 @@ const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) =
 
   const fetchSearchResults = async () => {
     if (!searchTerm) return;
-
+    
     setIsLoading(true);
     setError(null);
-
+    
     try {
-      const response = await axios.get(proxyUrl + `/api/komiku-api/post_type=manga&s=${encodeURIComponent(searchTerm)}`);
+      // Corrected URL structure with proper query parameters
+      const response = await axios.get(`/api/komiku-api/`, {
+        params: {
+          post_type: 'manga',
+          s: searchTerm
+        }
+      });
+  
+      // Handle the response
       const cleanHTML = DOMPurify.sanitize(response.data);
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHTML, "text/html");
-
+  
+      // Enhanced error handling for parsing
+      if (!doc.querySelector(".bge")) {
+        throw new Error("No manga results found");
+      }
+  
+      // Improved manga list extraction with null checks
       const mangaList = Array.from(doc.querySelectorAll(".bge")).map((manga) => {
-        const title = manga.querySelector("h3")?.textContent.trim();
-        const link = manga.querySelector(".bgei a")?.getAttribute("href");
-        const image = manga.querySelector(".bgei img")?.getAttribute("src");
-        return { title, link, image };
-      });
-
+        return {
+          title: manga.querySelector("h3")?.textContent?.trim() || "Unknown Title",
+          link: manga.querySelector(".bgei a")?.getAttribute("href") || "#",
+          image: manga.querySelector(".bgei img")?.getAttribute("src") || "",
+          // Add additional manga details if available
+          status: manga.querySelector(".status")?.textContent?.trim(),
+          type: manga.querySelector(".type")?.textContent?.trim()
+        };
+      }).filter(manga => manga.title && manga.title !== "Unknown Title");
+  
       setResults(mangaList);
+  
     } catch (error) {
       console.error("Error fetching data:", error);
-      setError("Failed to fetch manga. Please try again.");
+      
+      // More detailed error messages based on error type
+      const errorMessage = error.response?.status === 404
+        ? "Manga search service is currently unavailable"
+        : error.message === "No manga results found"
+        ? "No manga found matching your search"
+        : "Failed to fetch manga. Please try again.";
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
       onLoadComplete?.();
