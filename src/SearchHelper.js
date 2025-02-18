@@ -68,31 +68,20 @@ const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) =
     setError(null);
     
     try {
-      // Corrected URL structure with proper query parameters
-      const response = await axios.get(`/api/komiku-api/`, {
-        params: {
-          post_type: 'manga',
-          s: searchTerm
-        }
-      });
-  
-      // Handle the response
+      const response = await axios.get(`/api/komiku-api/?post_type=manga&s=${searchTerm}`);
       const cleanHTML = DOMPurify.sanitize(response.data);
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHTML, "text/html");
-  
-      // Enhanced error handling for parsing
+
       if (!doc.querySelector(".bge")) {
         throw new Error("No manga results found");
       }
-  
-      // Improved manga list extraction with null checks
+
       const mangaList = Array.from(doc.querySelectorAll(".bge")).map((manga) => {
         return {
           title: manga.querySelector("h3")?.textContent?.trim() || "Unknown Title",
           link: manga.querySelector(".bgei a")?.getAttribute("href") || "#",
           image: manga.querySelector(".bgei img")?.getAttribute("src") || "",
-          // Add additional manga details if available
           status: manga.querySelector(".status")?.textContent?.trim(),
           type: manga.querySelector(".type")?.textContent?.trim()
         };
@@ -102,8 +91,6 @@ const SearchHelper = ({ searchTerm, onLoadComplete, onComicClick, fetchType }) =
   
     } catch (error) {
       console.error("Error fetching data:", error);
-      
-      // More detailed error messages based on error type
       const errorMessage = error.response?.status === 404
         ? "Manga search service is currently unavailable"
         : error.message === "No manga results found"

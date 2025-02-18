@@ -242,8 +242,9 @@ const MangaReader = ({ comicSlug, chapter, onBackClick, onNextChapter, onPreviou
   useEffect(() => {
     const loadPages = async () => {
       try {
-        const fixedChapterURI = chapter.startsWith('/') ? chapter.slice(1) : chapter;
-        const response = await fetch(`/api/komiku/${fixedChapterURI}`);
+        // const cleanUrl = chapter.endsWith("/") ? chapter.slice(0, -1) : chapter;
+        console.log(chapter)
+        const response = await fetch(`/api/komiku/${chapter}`);
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -325,14 +326,59 @@ const App = () => {
 
   const fetchComicInfo = async (comicSlug) => {
     try {
-      const fixedComicURI = comicSlug.startsWith('/') ? comicSlug.slice(1) : comicSlug;
-      console.log(fixedComicURI);
-      const response = await fetch(`https://komiku-api.fly.dev/api/comic/info/${fixedComicURI}`);
-      const data = await response.json();
-      if (data.success) {
-        setComicInfo(data.data);
-        setPreviousInfo(data.data); // Store the comic info for back navigation
+      console.log("Cliked Comic!");
+      // const fixedComicURI = comicSlug.replace(/(0\d+)\/$/, "$1");
+      // const cleanUrl = fixedComicURI.endsWith("/") ? fixedComicURI.slice(0, -1) : fixedComicURI;
+      // Kg pake "/"
+      console.log(comicSlug);
+      const response = await fetch(`/api/info${comicSlug}/`);
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const description = doc.querySelector('p.desc')?.textContent.trim() || "No synopsis available.";
+      const thumbnailUrl = doc.querySelector('meta[name="thumbnailUrl"]')?.getAttribute('content') || '';
+      const coverUrl = doc.querySelector('.ims img')?.getAttribute('src') || '';
+      const genreElements = doc.querySelectorAll('.genre a');
+      const genres = Array.from(genreElements).map(genre => genre.textContent.trim());
+      const chapterElements = doc.querySelectorAll('#Daftar_Chapter a');
+      const chapters = Array.from(chapterElements).map(chapter => ({
+        name: chapter.querySelector('span')?.textContent.trim() || '',
+        endpoint: chapter.getAttribute('href')
+      }));
+
+      const data = {
+        title: doc.querySelector('h1 span')?.textContent.trim() || 'Unknown Title',
+        synopsis: description,
+        thumbnail: thumbnailUrl,
+        cover: coverUrl,
+        genre: genres,
+        chapter_list: chapters
       }
+      
+      console.log(data);
+
+      // const data = {
+      //   "success": true,
+      //   "data": {
+      //     "thumbnail": doc.querySelector('meta[name="thumbnailUrl"]')?.getAttribute('content') || '',
+      //     "description": doc.querySelector('p.desc')?.textContent.trim() || "No synopsis available.",
+      //     "title": "",
+      //     "type": "",
+      //     "author": "",
+      //     "status": "",
+      //     "rating": "",
+      //     "genre": null,
+      //     "chapter_list": null
+      //   },
+      //   "message": "Get Comic Info",
+      //   "code": 200
+      // };
+      
+      // Mengisi data ke dalam title
+      
+      setComicInfo(data);
+      setPreviousInfo(data); // Store the comic info for back navigation
     } catch (error) {
       console.error("Error fetching comic info:", error);
     }

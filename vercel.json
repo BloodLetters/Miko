@@ -5,11 +5,15 @@
             "destination": "https://komiku.id/:path*"
         },
         {
+            "source": "/api/info/:path*/",
+            "destination": "https://komiku.id/:path*/"
+        },
+        {
             "source": "/api/komiku-api/:path*",
             "destination": "https://api.komiku.id/:path*"
         },
         {
-            "source": "/api/fly/:path*",
+            "source": "/api/comic/:path*",
             "destination": "https://komiku-api.fly.dev/api/comic/info/:path*"
         }
     ]
