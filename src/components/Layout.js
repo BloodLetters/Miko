@@ -373,29 +373,38 @@ const SearchPage = ({ onMangaSelect }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === "Go") {
+      handleSearch(e);
+    }
+  };
+
   return (
     <div className="p-4">
-      <form onSubmit={handleSearch} className="space-y-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search manga..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <Search className="absolute right-3 top-3 text-gray-400" size={20} />
-        </div>
-        
-        <select
-          value={searchSource}
-          onChange={(e) => setSearchSource(e.target.value)}
-          className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white"
-        >
-          <option value="Komiku">Komiku</option>
-          <option value="Mangadex">Mangadex</option>
-        </select>
-      </form>
+          <form onSubmit={handleSearch} className="space-y-4">
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search manga..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          // Ensures 'Enter' key on mobile triggers the search
+          inputMode="search"
+        />
+        <Search className="absolute right-3 top-3 text-gray-400" size={20} />
+      </div>
+
+      <select
+        value={searchSource}
+        onChange={(e) => setSearchSource(e.target.value)}
+        className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white"
+      >
+        <option value="Komiku">Komiku</option>
+        <option value="Mangadex">Mangadex</option>
+      </select>
+    </form>
 
       {isLoading && (
         <div className="flex justify-center items-center mt-8">
