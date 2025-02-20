@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Search, History, ArrowLeft, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
-import axios from 'axios';
 
 // Layout Component
 const Layout = ({ children }) => {
@@ -9,8 +8,6 @@ const Layout = ({ children }) => {
     const [currentSource, setCurrentSource] = useState('');
   
     const handleMangaSelect = (manga, source) => {
-      // If manga has a chapter endpoint, it's coming from history
-      // and should open directly to the reading page
       if (manga.endpoint && manga.endpoint.includes('chapter')) {
         setSelectedManga({
           ...manga,
@@ -80,7 +77,7 @@ const Layout = ({ children }) => {
   );
 };
 
-const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
+const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterList }) => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(
@@ -99,15 +96,19 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
         if (data.status === 200 && Array.isArray(data.data)) {
           setImages(data.data);
           
-          // Save to history
-          saveToHistory(
-            {
-              title: chapter.title,
-              thumbnail: chapter.thumbnail
-            },
-            chapter,
-            source
-          );
+            // Save to history
+            if(JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
+                saveToHistory(
+                    mangaInfoURL,
+                    manga,
+                    {
+                        title: chapter.title,
+                        thumbnail: chapter.thumbnail
+                    },
+                    chapter,
+                    source
+                );
+            }
         } else {
           console.error('Invalid data format:', data);
         }
@@ -121,43 +122,49 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
     fetchChapterImages();
   }, [chapter, source]);
 
-  const saveToHistory = (manga, chapter, source) => {
+  const saveToHistory = (mangaURL, manga, comicInfo, chapter, source) => {
     try {
       const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
       const currentDate = new Date().toISOString();
       
-      // Format the endpoint to include source
-      const formattedEndpoint = `/api/${source}/chapter/${chapter.endpoint.split('/chapter/')[1]}`.replace(/\/+/g, '/');
-      
+      const formattedEndpoint = chapter.endpoint.replace(/^\/+/, "");
+      if(JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
+        return;
+      }
+      console.log("LOGGING");
+      console.log(mangaURL)
+      console.log(manga);
+      console.log(comicInfo);
+      console.log(chapter);
+      console.log(source);
+
       const historyEntry = {
-        title: manga.title || 'Unknown Title',
+        title: manga.title.replace("Komik ", "") || 'Unknown Title',
+        manga_url: mangaURL || '',
         lastReadChapter: {
           name: chapter.name || 'Unknown Chapter',
-          endpoint: formattedEndpoint
+          endpoint: formattedEndpoint,
         },
         source: source,
-        cover: manga.thumbnail || chapter.thumbnail,
-        lastReadAt: currentDate
+        cover: manga.thumbnail || "Unknown Thumbnail",
+        thumbnail: manga.thumbnail || chapter.thumbnail,
+        lastReadAt: currentDate,
+        isFromHistory: true
       };
-  
-      // Find existing entry index by manga title
       const existingIndex = history.findIndex(item => 
         item.title === historyEntry.title
       );
   
       if (existingIndex !== -1) {
-        // Update existing entry
         history[existingIndex] = {
           ...history[existingIndex],
-          lastReadChapter: historyEntry.lastReadChapter,
+          ...historyEntry,
           lastReadAt: currentDate
         };
       } else {
-        // Add new entry at the beginning
         history.unshift(historyEntry);
       }
-  
-      // Keep only the last 50 entries
+
       const trimmedHistory = history.slice(0, 50);
       localStorage.setItem('readingHistory', JSON.stringify(trimmedHistory));
     } catch (error) {
@@ -270,6 +277,7 @@ const ComicInfoPage = ({ manga, source, onBack }) => {
     const [loading, setLoading] = useState(true);
     const [selectedChapter, setSelectedChapter] = useState(null);
     const [latestChapter, setLatestChapter] = useState(null);
+    const [mangaURL, setMangaURL] = useState(null);
   
     useEffect(() => {
       const fetchComicInfo = async () => {
@@ -279,7 +287,9 @@ const ComicInfoPage = ({ manga, source, onBack }) => {
             `https://id-comic-api.vercel.app/api/${source}/info/${cleanUrl}`
           );
           const data = await response.json();
+
           setComicInfo(data.data);
+          setMangaURL(manga.manga_url)
           setLatestChapter(data.data.chapter_list[0]);
         } catch (error) {
           console.error('Error fetching comic info:', error);
@@ -314,11 +324,15 @@ const ComicInfoPage = ({ manga, source, onBack }) => {
       return (
         <ReadComicPage 
           chapter={selectedChapter}
+          mangaInfoURL={mangaURL}
           source={source}
+          manga={comicInfo}
           onBack={(chapter) => {
             if (chapter) {
               setSelectedChapter(chapter);
-              saveToHistory(chapter);
+              if(JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
+                saveToHistory(chapter);
+              }
             } else {
               setSelectedChapter(null);
             }
@@ -564,34 +578,33 @@ const HistoryPage = ({ onMangaSelect }) => {
   
     const handleMangaClick = (historyItem) => {
       // Construct manga object with necessary information for chapter reading
-      const mangaData = {
+      const chapterData = {
+        ...historyItem.lastReadChapter,
         title: historyItem.title,
-        endpoint: historyItem.lastReadChapter.endpoint.split('/chapter/')[1], // Extract clean endpoint
-        name: historyItem.lastReadChapter.name,
-        chapter: historyItem.lastReadChapter.name,
-        thumbnail: historyItem.cover,
-        cover: historyItem.cover
+        thumbnail: historyItem.cover || historyItem.thumbnail,
+        isFromHistory: true, // Flag untuk menandai bahwa ini dari history
+        endpoint: historyItem.lastReadChapter.endpoint // Gunakan endpoint langsung dari lastReadChapter
       };
   
-      // Set the manga and start reading from the last chapter
-      onMangaSelect(mangaData, historyItem.source);
+      // Langsung panggil onMangaSelect dengan chapter data
+      onMangaSelect(chapterData, historyItem.source);
     };
-  
+
     const formatDate = (dateString) => {
-      try {
-        const date = new Date(dateString);
-        return date.toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
-        });
-      } catch (error) {
-        return 'Unknown date';
-      }
-    };
+        try {
+          const date = new Date(dateString);
+          return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          });
+        } catch (error) {
+          return 'Unknown date';
+        }
+      };
   
     return (
       <div className="p-4">
@@ -610,7 +623,7 @@ const HistoryPage = ({ onMangaSelect }) => {
               >
                 <div className="relative w-24 h-32">
                   <img 
-                    src={item.cover || "/api/placeholder/100/150"} 
+                    src={item.cover || item.thumbnail || "/api/placeholder/100/150"} 
                     alt={item.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -622,15 +635,12 @@ const HistoryPage = ({ onMangaSelect }) => {
                   </div>
                 </div>
                 <div className="p-3 flex-1">
-                  {/* Main title */}
                   <h3 className="font-medium text-sm text-white line-clamp-2">
                     {item.title}
                   </h3>
-                  {/* Last read chapter */}
                   <p className="text-xs text-blue-400 mt-1">
                     {item.lastReadChapter.name}
                   </p>
-                  {/* Date */}
                   <p className="text-xs text-gray-500 mt-1">
                     {formatDate(item.lastReadAt)}
                   </p>
