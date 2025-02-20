@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Home, Search, History, ArrowLeft, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 
-
 // Layout Component
 const Layout = ({ children }) => {
   const [activeTab, setActiveTab] = useState('home');
@@ -27,7 +26,7 @@ const Layout = ({ children }) => {
           </>
         )}
       </main>
-      
+
       {!selectedManga && (
         <nav className="fixed bottom-0 w-full bg-gray-800 border-t border-gray-700">
           <div className="flex justify-around items-center h-16">
@@ -71,13 +70,10 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
       setLoading(true);
       try {
         const cleanUrl = chapter.endpoint.replace(/^\/+/, "");
-        console.log("CleanURL: " + cleanUrl);
-        console.log('Fetching:', `https://id-comic-api.vercel.app/api/${source}${cleanUrl}`);
         const response = await fetch(
           `https://id-comic-api.vercel.app/api/${source}/${cleanUrl}`
         );
         const data = await response.json();
-        console.log('Received data:', data);
         if (data.status === 200 && Array.isArray(data.data)) {
           setImages(data.data);
         } else {
@@ -94,20 +90,24 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
   }, [chapter, source]);
 
   const handlePreviousChapter = () => {
-    if (currentChapterIndex < chapterList.length - 1) {
-      const nextChapter = chapterList[currentChapterIndex + 1];
-      setImages([]);
-      setCurrentChapterIndex(currentChapterIndex + 1);
-      onBack(nextChapter);
-    }
-  };
-
-  const handleNextChapter = () => {
     if (currentChapterIndex > 0) {
       const prevChapter = chapterList[currentChapterIndex - 1];
       setImages([]);
       setCurrentChapterIndex(currentChapterIndex - 1);
-      onBack(prevChapter);
+      setTimeout(() => {
+        onBack(prevChapter);
+      }, 0);
+    }
+  };
+
+  const handleNextChapter = () => {
+    if (currentChapterIndex < chapterList.length - 1) {
+      const nextChapter = chapterList[currentChapterIndex + 1];
+      setImages([]);
+      setCurrentChapterIndex(currentChapterIndex + 1);
+      setTimeout(() => {
+        onBack(nextChapter);
+      }, 0);
     }
   };
 
@@ -116,7 +116,7 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
       <div className="fixed top-0 left-0 right-0 bg-gray-900 z-50">
         <div className="flex items-center justify-between p-4">
           <button 
-            onClick={onBack}
+            onClick={() => onBack(null)}
             className="p-2 rounded-full hover:bg-gray-800"
           >
             <ArrowLeft size={24} className="text-white" />
@@ -158,7 +158,7 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900 z-50">
         <div className="flex justify-between items-center p-4">
           <button
-            onClick={handlePreviousChapter}
+            onClick={handleNextChapter}
             disabled={currentChapterIndex >= chapterList.length - 1}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentChapterIndex >= chapterList.length - 1 
@@ -171,7 +171,7 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
           </button>
 
           <button
-            onClick={handleNextChapter}
+            onClick={handlePreviousChapter}
             disabled={currentChapterIndex <= 0}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentChapterIndex <= 0 
@@ -187,7 +187,6 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
     </div>
   );
 };
-
 
 // Comic Info Page Component
 const ComicInfoPage = ({ manga, source, onBack }) => {
@@ -227,7 +226,13 @@ const ComicInfoPage = ({ manga, source, onBack }) => {
       <ReadComicPage 
         chapter={selectedChapter}
         source={source}
-        onBack={() => setSelectedChapter(null)}
+        onBack={(chapter) => {
+          if (chapter) {
+            setSelectedChapter(chapter);
+          } else {
+            setSelectedChapter(null);
+          }
+        }}
         chapterList={comicInfo.chapter_list}
       />
     );
