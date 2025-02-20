@@ -27,7 +27,16 @@ const Layout = ({ children }) => {
                 <ReadComicPage
                 chapter={selectedManga}
                 source={currentSource}
-                onBack={() => setSelectedManga(null)}
+                onBack={(chapter) => {
+                    if (chapter) {
+                      setSelectedManga({
+                        ...chapter,
+                        isFromHistory: true,
+                      });
+                    } else {
+                      setSelectedManga(null);
+                    }
+                  }}
                 // Pass the chapter list from the fetched manga info
                 chapterList={selectedManga.chapter_list || []}
                 // Pass additional manga info
@@ -84,9 +93,23 @@ const Layout = ({ children }) => {
 const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterList }) => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentChapterIndex, setCurrentChapterIndex] = useState(
-    chapterList.findIndex(c => c.endpoint === chapter.endpoint)
-  );
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(() => {
+    const initialIndex = chapterList.findIndex(c => c.endpoint === chapter.endpoint);
+    return initialIndex === -1 ? 0 : initialIndex;
+  });
+  const [localChapterList, setLocalChapterList] = useState(chapterList);
+
+  useEffect(() => {
+    // Reset currentChapterIndex if chapterList changes
+    setCurrentChapterIndex(prevIndex => {
+      const newIndex = localChapterList.findIndex(c => c.endpoint === chapter.endpoint);
+      return newIndex === -1 ? 0 : newIndex;
+    });
+  }, [chapter.endpoint, localChapterList]);
+
+  useEffect(() => {
+    setLocalChapterList(chapterList);
+  }, [chapterList]);
 
   useEffect(() => {
     const fetchChapterImages = async () => {
@@ -99,20 +122,6 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
         const data = await response.json();
         if (data.status === 200 && Array.isArray(data.data)) {
           setImages(data.data);
-          
-            // Save to history
-            if(JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
-                saveToHistory(
-                    mangaInfoURL,
-                    manga,
-                    {
-                        title: chapter.title,
-                        thumbnail: chapter.thumbnail
-                    },
-                    chapter,
-                    source
-                );
-            }
         } else {
           console.error('Invalid data format:', data);
         }
@@ -125,19 +134,26 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
 
     fetchChapterImages();
   }, [chapter, source]);
+  
+  useEffect(() => {
+    // Save to history when the component mounts or chapter changes
+    saveToHistory(
+        mangaInfoURL,
+        manga,
+        {
+            title: chapter.title,
+            thumbnail: chapter.thumbnail
+        },
+        chapter,
+        source
+    );
+  }, [chapter, source, mangaInfoURL, manga]);
 
   const saveToHistory = (mangaURL, manga, comicInfo, chapter, source) => {
     try {
       const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
       const currentDate = new Date().toISOString();
-      
       const formattedEndpoint = chapter.endpoint.replace(/^\/+/, "");
-      console.log("LOGGING");
-      console.log(mangaURL)
-      console.log(manga);
-      console.log(comicInfo);
-      console.log(chapter);
-      console.log(source);
 
       const historyEntry = {
         title: manga.title.replace("Komik ", "") || 'Unknown Title',
@@ -152,17 +168,21 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
         lastReadAt: currentDate,
         isFromHistory: true
       };
-      const existingIndex = history.findIndex(item => 
-        item.title === historyEntry.title
-      );
-  
+
+      const existingIndex = history.findIndex(item => item.title === historyEntry.title);
+
       if (existingIndex !== -1) {
+        // Jika sudah ada di history, jangan update manga_url
         history[existingIndex] = {
           ...history[existingIndex],
-          ...historyEntry,
+          lastReadChapter: {
+            name: chapter.name || 'Unknown Chapter',
+            endpoint: formattedEndpoint,
+          },
           lastReadAt: currentDate
         };
       } else {
+        // Jika belum ada, tambahkan historyEntry lengkap (termasuk manga_url)
         history.unshift(historyEntry);
       }
 
@@ -174,24 +194,43 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
   };
 
   const handlePreviousChapter = () => {
-    if (currentChapterIndex > 0) {
-      const prevChapter = chapterList[currentChapterIndex - 1];
-      setImages([]);
-      setCurrentChapterIndex(currentChapterIndex - 1);
-      setTimeout(() => {
-        onBack(prevChapter);
-      }, 0);
+    const currentChapterNumber = parseInt(chapter.name.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(currentChapterNumber)) {
+      const prevChapterNumber = currentChapterNumber - 1;
+      const prevChapter = localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === prevChapterNumber);
+
+      if (prevChapter) {
+        setImages([]);
+        setCurrentChapterIndex(localChapterList.findIndex(c => c.endpoint === prevChapter.endpoint));
+        onBack({
+          ...prevChapter,
+          manga_info: manga,
+          chapter_list: localChapterList,
+          manga_url: mangaInfoURL,
+          source: source,
+        });
+      }
     }
   };
 
   const handleNextChapter = () => {
-    if (currentChapterIndex < chapterList.length - 1) {
-      const nextChapter = chapterList[currentChapterIndex + 1];
-      setImages([]);
-      setCurrentChapterIndex(currentChapterIndex + 1);
-      setTimeout(() => {
-        onBack(nextChapter);
-      }, 0);
+    const currentChapterNumber = parseInt(chapter.name.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(currentChapterNumber)) {
+      const nextChapterNumber = currentChapterNumber + 1;
+      const nextChapter = localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === nextChapterNumber);
+
+      if (nextChapter) {
+        setImages([]);
+        setCurrentChapterIndex(localChapterList.findIndex(c => c.endpoint === nextChapter.endpoint));
+        
+        onBack({
+          ...nextChapter,
+          manga_info: manga,
+          chapter_list: localChapterList,
+          manga_url: mangaInfoURL,
+          source: source,
+        });
+      }
     }
   };
 
@@ -242,10 +281,10 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900 z-50">
         <div className="flex justify-between items-center p-4">
           <button
-            onClick={handleNextChapter}
-            disabled={currentChapterIndex >= chapterList.length - 1}
+            onClick={handlePreviousChapter}
+            disabled={!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1))}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              currentChapterIndex >= chapterList.length - 1 
+              !localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1))
                 ? 'bg-gray-700 text-gray-500' 
                 : 'bg-blue-600 text-white'
             }`}
@@ -255,10 +294,10 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
           </button>
 
           <button
-            onClick={handlePreviousChapter}
-            disabled={currentChapterIndex <= 0}
+            onClick={handleNextChapter}
+            disabled={!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1))}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              currentChapterIndex <= 0 
+              !localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1))
                 ? 'bg-gray-700 text-gray-500' 
                 : 'bg-blue-600 text-white'
             }`}
@@ -303,14 +342,47 @@ const ComicInfoPage = ({ manga, source, onBack }) => {
     }, [manga.manga_url, source]);
   
     const saveToHistory = (chapter) => {
-      const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
-      const mangaIndex = history.findIndex(item => item.manga_url === manga.manga_url);
-      if (mangaIndex !== -1) {
-        history[mangaIndex] = { ...history[mangaIndex], lastReadChapter: chapter, source };
-      } else {
-        history.push({ manga_url: manga.manga_url, title: manga.title, thumbnail: manga.thumbnail, lastReadChapter: chapter, source });
+      try {
+        const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
+        const currentDate = new Date().toISOString();
+        const formattedEndpoint = chapter.endpoint.replace(/^\/+/, "");
+  
+        const historyEntry = {
+          title: comicInfo?.title.replace("Komik ", "") || 'Unknown Title',
+          manga_url: mangaURL || '',
+          lastReadChapter: {
+            name: chapter.name || 'Unknown Chapter',
+            endpoint: formattedEndpoint,
+          },
+          source: source,
+          cover: comicInfo?.thumbnail || "Unknown Thumbnail",
+          thumbnail: comicInfo?.thumbnail || chapter.thumbnail,
+          lastReadAt: currentDate,
+          isFromHistory: true
+        };
+  
+        const existingIndex = history.findIndex(item => item.title === historyEntry.title);
+  
+        if (existingIndex !== -1) {
+          // Jika sudah ada di history, jangan update manga_url
+          history[existingIndex] = {
+            ...history[existingIndex],
+            lastReadChapter: {
+              name: chapter.name || 'Unknown Chapter',
+              endpoint: formattedEndpoint,
+            },
+            lastReadAt: currentDate
+          };
+        } else {
+          // Jika belum ada, tambahkan historyEntry lengkap (termasuk manga_url)
+          history.unshift(historyEntry);
+        }
+  
+        const trimmedHistory = history.slice(0, 50);
+        localStorage.setItem('readingHistory', JSON.stringify(trimmedHistory));
+      } catch (error) {
+        console.error('Error saving to history:', error);
       }
-      localStorage.setItem('readingHistory', JSON.stringify(history));
     };
   
     if (loading) {
