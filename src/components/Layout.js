@@ -403,6 +403,7 @@ const SearchPage = ({ onMangaSelect }) => {
       >
         <option value="Komiku">Komiku</option>
         <option value="Mangadex">Mangadex</option>
+        <option value="Komikindo">Komikindo</option>
       </select>
     </form>
 
