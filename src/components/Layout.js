@@ -22,22 +22,26 @@ const Layout = ({ children }) => {
     return (
       <div className="h-screen flex flex-col bg-gray-900 text-gray-100">
         <main className="flex-1 overflow-y-auto pb-16">
-          {selectedManga ? (
+        {selectedManga ? (
             selectedManga.isFromHistory ? (
-              <ReadComicPage
+                <ReadComicPage
                 chapter={selectedManga}
                 source={currentSource}
                 onBack={() => setSelectedManga(null)}
-                chapterList={[]} // This will be fetched in ReadComicPage
-              />
+                // Pass the chapter list from the fetched manga info
+                chapterList={selectedManga.chapter_list || []}
+                // Pass additional manga info
+                manga={selectedManga.manga_info}
+                mangaInfoURL={selectedManga.manga_url}
+                />
             ) : (
-              <ComicInfoPage 
+                <ComicInfoPage 
                 manga={selectedManga} 
                 source={currentSource} 
                 onBack={() => setSelectedManga(null)} 
-              />
+                />
             )
-          ) : (
+            ) : (
             <>
               {activeTab === 'home' && <HomePage />}
               {activeTab === 'search' && <SearchPage onMangaSelect={handleMangaSelect} />}
@@ -128,9 +132,6 @@ const ReadComicPage = ({ chapter, mangaInfoURL, source, manga, onBack, chapterLi
       const currentDate = new Date().toISOString();
       
       const formattedEndpoint = chapter.endpoint.replace(/^\/+/, "");
-      if(JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
-        return;
-      }
       console.log("LOGGING");
       console.log(mangaURL)
       console.log(manga);
@@ -562,6 +563,7 @@ const SearchPage = ({ onMangaSelect }) => {
 
 const HistoryPage = ({ onMangaSelect }) => {
     const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(false);
   
     useEffect(() => {
       try {
@@ -576,18 +578,49 @@ const HistoryPage = ({ onMangaSelect }) => {
       }
     }, []);
   
-    const handleMangaClick = (historyItem) => {
-      // Construct manga object with necessary information for chapter reading
-      const chapterData = {
-        ...historyItem.lastReadChapter,
-        title: historyItem.title,
-        thumbnail: historyItem.cover || historyItem.thumbnail,
-        isFromHistory: true, // Flag untuk menandai bahwa ini dari history
-        endpoint: historyItem.lastReadChapter.endpoint // Gunakan endpoint langsung dari lastReadChapter
-      };
-  
-      // Langsung panggil onMangaSelect dengan chapter data
-      onMangaSelect(chapterData, historyItem.source);
+    const handleMangaClick = async (historyItem) => {
+      setLoading(true);
+      try {
+        // Clean the manga_url by removing leading slashes
+        const cleanUrl = historyItem.manga_url.replace(/^\/+/, "");
+        
+        // Fetch the manga info including chapter list
+        const response = await fetch(
+          `https://id-comic-api.vercel.app/api/${historyItem.source}/info/${cleanUrl}`
+        );
+        const data = await response.json();
+        
+        if (data.data) {
+          // Construct manga object with necessary information for chapter reading
+          const chapterData = {
+            ...historyItem.lastReadChapter,
+            title: historyItem.title,
+            thumbnail: historyItem.cover || historyItem.thumbnail,
+            isFromHistory: true,
+            endpoint: historyItem.lastReadChapter.endpoint,
+            // Add the full manga info and chapter list
+            manga_info: data.data,
+            chapter_list: data.data.chapter_list || []
+          };
+          
+          // Call onMangaSelect with the enhanced chapter data
+          onMangaSelect(chapterData, historyItem.source);
+        }
+      } catch (error) {
+        console.error('Error fetching manga info:', error);
+        // If fetch fails, still allow reading with limited functionality
+        const chapterData = {
+          ...historyItem.lastReadChapter,
+          title: historyItem.title,
+          thumbnail: historyItem.cover || historyItem.thumbnail,
+          isFromHistory: true,
+          endpoint: historyItem.lastReadChapter.endpoint,
+          chapter_list: [] // Empty chapter list will disable navigation
+        };
+        onMangaSelect(chapterData, historyItem.source);
+      } finally {
+        setLoading(false);
+      }
     };
 
     const formatDate = (dateString) => {
@@ -604,7 +637,7 @@ const HistoryPage = ({ onMangaSelect }) => {
         } catch (error) {
           return 'Unknown date';
         }
-      };
+    };
   
     return (
       <div className="p-4">
@@ -619,7 +652,10 @@ const HistoryPage = ({ onMangaSelect }) => {
               <button
                 key={`${item.title}-${index}`}
                 onClick={() => handleMangaClick(item)}
-                className="w-full bg-gray-800 rounded-lg shadow-md overflow-hidden flex text-left hover:bg-gray-700 transition duration-200 ease-in-out"
+                disabled={loading}
+                className={`w-full bg-gray-800 rounded-lg shadow-md overflow-hidden flex text-left 
+                  ${loading ? 'opacity-50 cursor-wait' : 'hover:bg-gray-700'} 
+                  transition duration-200 ease-in-out`}
               >
                 <div className="relative w-24 h-32">
                   <img 
