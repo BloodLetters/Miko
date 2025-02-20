@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Search, History, ArrowLeft, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import axios from 'axios';
+
 
 // Layout Component
 const Layout = ({ children }) => {
@@ -136,14 +138,10 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
             {images.map((image, index) => (
               <div key={index} className="relative w-full">
                 <img
-                  src={image}
+                  src={`https://images.weserv.nl/?url=${encodeURIComponent(image)}`}
                   alt={`Page ${index + 1}`}
                   className="w-full h-auto"
                   loading="lazy"
-                  onError={(e) => {
-                    console.error(`Error loading image ${index}:`, image);
-                    e.target.src = "/api/placeholder/800/1200";
-                  }}
                 />
               </div>
             ))}
@@ -403,6 +401,7 @@ const SearchPage = ({ onMangaSelect }) => {
       >
         <option value="Komiku">Komiku</option>
         <option value="Mangadex">Mangadex</option>
+        <option value="Komikindo">Komikindo</option>
       </select>
     </form>
 
