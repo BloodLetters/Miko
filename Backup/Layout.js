@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
           <>
             {activeTab === 'home' && <HomePage />}
             {activeTab === 'search' && <SearchPage onMangaSelect={handleMangaSelect} />}
-            {activeTab === 'history' && <HistoryPage onMangaSelect={handleMangaSelect} />}
+            {activeTab === 'history' && <HistoryPage />}
           </>
         )}
       </main>
@@ -87,19 +87,7 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
     };
 
     fetchChapterImages();
-    saveToHistory(chapter, source); // Save to history whenever a chapter is read
   }, [chapter, source]);
-
-  const saveToHistory = (chapter, source) => {
-    const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
-    const mangaIndex = history.findIndex(item => item.manga_url === chapter.manga_url);
-    if (mangaIndex !== -1) {
-      history[mangaIndex] = { ...history[mangaIndex], lastReadChapter: chapter, source };
-    } else {
-      history.push({ manga_url: chapter.manga_url, title: chapter.title, thumbnail: chapter.thumbnail, lastReadChapter: chapter, source });
-    }
-    localStorage.setItem('readingHistory', JSON.stringify(history));
-  };
 
   const handlePreviousChapter = () => {
     if (currentChapterIndex > 0) {
@@ -202,157 +190,145 @@ const ReadComicPage = ({ chapter, source, onBack, chapterList }) => {
 
 // Comic Info Page Component
 const ComicInfoPage = ({ manga, source, onBack }) => {
-    const [comicInfo, setComicInfo] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [selectedChapter, setSelectedChapter] = useState(null);
-    const [latestChapter, setLatestChapter] = useState(null);
-  
-    useEffect(() => {
-      const fetchComicInfo = async () => {
-        try {
-          const cleanUrl = manga.manga_url.replace(/^\/+/, "");
-          const response = await fetch(
-            `https://id-comic-api.vercel.app/api/${source}/info/${cleanUrl}`
-          );
-          const data = await response.json();
-          setComicInfo(data.data);
-          setLatestChapter(data.data.chapter_list[0]);
-        } catch (error) {
-          console.error('Error fetching comic info:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchComicInfo();
-    }, [manga.manga_url, source]);
-  
-    const saveToHistory = (chapter) => {
-      const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
-      const mangaIndex = history.findIndex(item => item.manga_url === manga.manga_url);
-      if (mangaIndex !== -1) {
-        history[mangaIndex] = { ...history[mangaIndex], lastReadChapter: chapter, source };
-      } else {
-        history.push({ manga_url: manga.manga_url, title: manga.title, thumbnail: manga.thumbnail, lastReadChapter: chapter, source });
+  const [comicInfo, setComicInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [latestChapter, setLatestChapter] = useState(null); // Add this state
+
+  useEffect(() => {
+    const fetchComicInfo = async () => {
+      try {
+        const cleanUrl = manga.manga_url.replace(/^\/+/, "");
+        const response = await fetch(
+          `https://id-comic-api.vercel.app/api/${source}/info/${cleanUrl}`
+        );
+        const data = await response.json();
+        setComicInfo(data.data);
+        setLatestChapter(data.data.chapter_list[0]); // Set the latest chapter
+      } catch (error) {
+        console.error('Error fetching comic info:', error);
+      } finally {
+        setLoading(false);
       }
-      localStorage.setItem('readingHistory', JSON.stringify(history));
     };
-  
-    if (loading) {
-      return (
-        <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-        </div>
-      );
-    }
-  
-    if (selectedChapter) {
-      return (
-        <ReadComicPage 
-          chapter={selectedChapter}
-          source={source}
-          onBack={(chapter) => {
-            if (chapter) {
-              setSelectedChapter(chapter);
-              saveToHistory(chapter);
-            } else {
-              setSelectedChapter(null);
-            }
-          }}
-          chapterList={comicInfo.chapter_list}
-        />
-      );
-    }
-  
+
+    fetchComicInfo();
+  }, [manga.manga_url, source]);
+
+  if (loading) {
     return (
-      <div className="pb-4">
-        {/* Banner */}
-        <div className="relative h-48 w-full">
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+      </div>
+    );
+  }
+
+  if (selectedChapter) {
+    return (
+      <ReadComicPage 
+        chapter={selectedChapter}
+        source={source}
+        onBack={(chapter) => {
+          if (chapter) {
+            setSelectedChapter(chapter);
+          } else {
+            setSelectedChapter(null);
+          }
+        }}
+        chapterList={comicInfo.chapter_list}
+      />
+    );
+  }
+
+  return (
+    <div className="pb-4">
+      {/* Banner */}
+      <div className="relative h-48 w-full">
+        <img 
+          src={comicInfo?.cover || "/api/placeholder/800/400"} 
+          alt="banner"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+        <button 
+          onClick={onBack}
+          className="absolute top-4 left-4 p-2 rounded-full bg-gray-900/50 text-white"
+        >
+          <ArrowLeft size={24} />
+        </button>
+      </div>
+
+      {/* Manga Info */}
+      <div className="px-4 -mt-16 relative">
+        <div className="flex gap-4">
           <img 
-            src={comicInfo?.cover || "/api/placeholder/800/400"} 
-            alt="banner"
-            className="w-full h-full object-cover"
+            src={comicInfo?.thumbnail || "/api/placeholder/150/200"} 
+            alt={comicInfo?.title}
+            className="w-32 h-44 object-cover rounded-lg shadow-lg"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-          <button 
-            onClick={onBack}
-            className="absolute top-4 left-4 p-2 rounded-full bg-gray-900/50 text-white"
+          <div className="flex-1 pt-16">
+            <h1 className="text-xl font-bold">{comicInfo?.title}</h1>
+          </div>
+        </div>
+
+        {/* Genres */}
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold mb-2">Genres</h2>
+          <div className="flex flex-wrap gap-2">
+            {comicInfo?.genre.map((genre, index) => (
+              <span 
+                key={index}
+                className="px-3 py-1 bg-gray-800 rounded-full text-sm text-blue-400"
+              >
+                {genre}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Synopsis */}
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold mb-2">Synopsis</h2>
+          <p className="text-gray-300 text-sm leading-relaxed">
+            {comicInfo?.synopsis}
+          </p>
+        </div>
+
+        {/* Add the buttons here */}
+        <div className="mt-4 flex space-x-2">
+          <button
+            onClick={() => setSelectedChapter(comicInfo.chapter_list[comicInfo.chapter_list.length - 1])}
+            className="flex-1 p-3 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700"
           >
-            <ArrowLeft size={24} />
+            <span className="text-sm">Chapter 1</span>
+          </button>
+          <button
+            onClick={() => setSelectedChapter(latestChapter)}
+            className="flex-1 p-3 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700"
+          >
+            <span className="text-sm">{latestChapter?.name}</span>
           </button>
         </div>
-  
-        {/* Manga Info */}
-        <div className="px-4 -mt-16 relative">
-          <div className="flex gap-4">
-            <img 
-              src={comicInfo?.thumbnail || "/api/placeholder/150/200"} 
-              alt={comicInfo?.title}
-              className="w-32 h-44 object-cover rounded-lg shadow-lg"
-            />
-            <div className="flex-1 pt-16">
-              <h1 className="text-xl font-bold">{comicInfo?.title}</h1>
-            </div>
-          </div>
-  
-          {/* Genres */}
-          <div className="mt-4">
-            <h2 className="text-lg font-semibold mb-2">Genres</h2>
-            <div className="flex flex-wrap gap-2">
-              {comicInfo?.genre.map((genre, index) => (
-                <span 
-                  key={index}
-                  className="px-3 py-1 bg-gray-800 rounded-full text-sm text-blue-400"
-                >
-                  {genre}
-                </span>
-              ))}
-            </div>
-          </div>
-  
-          {/* Synopsis */}
-          <div className="mt-4">
-            <h2 className="text-lg font-semibold mb-2">Synopsis</h2>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {comicInfo?.synopsis}
-            </p>
-          </div>
-  
-          {/* Add the buttons here */}
-          <div className="mt-4 flex space-x-2">
-            <button
-              onClick={() => setSelectedChapter(comicInfo.chapter_list[comicInfo.chapter_list.length - 1])}
-              className="flex-1 p-3 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700"
-            >
-              <span className="text-sm">Chapter 1</span>
-            </button>
-            <button
-              onClick={() => setSelectedChapter(latestChapter)}
-              className="flex-1 p-3 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700"
-            >
-              <span className="text-sm">Chapter {latestChapter?.name}</span>
-            </button>
-          </div>
-  
-          {/* Chapter List */}
-          <div className="mt-4">
-            <h2 className="text-lg font-semibold mb-2">Chapters</h2>
-            <div className="space-y-2">
-              {comicInfo?.chapter_list.map((chapter, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedChapter(chapter)}
-                  className="w-full p-3 bg-gray-800 rounded-lg flex items-center justify-between hover:bg-gray-700"
-                >
-                  <span className="text-sm">{chapter.name}</span>
-                  <Clock size={16} className="text-gray-400" />
-                </button>
-              ))}
-            </div>
+
+        {/* Chapter List */}
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold mb-2">Chapters</h2>
+          <div className="space-y-2">
+            {comicInfo?.chapter_list.map((chapter, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedChapter(chapter)}
+                className="w-full p-3 bg-gray-800 rounded-lg flex items-center justify-between hover:bg-gray-700"
+              >
+                <span className="text-sm">{chapter.name}</span>
+                <Clock size={16} className="text-gray-400" />
+              </button>
+            ))}
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 };
 
 // Home Page Component
@@ -426,31 +402,31 @@ const SearchPage = ({ onMangaSelect }) => {
 
   return (
     <div className="p-4">
-      <form onSubmit={handleSearch} className="space-y-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search manga..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            // Ensures 'Enter' key on mobile triggers the search
-            inputMode="search"
-          />
-          <Search className="absolute right-3 top-3 text-gray-400" size={20} />
-        </div>
+          <form onSubmit={handleSearch} className="space-y-4">
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search manga..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          // Ensures 'Enter' key on mobile triggers the search
+          inputMode="search"
+        />
+        <Search className="absolute right-3 top-3 text-gray-400" size={20} />
+      </div>
 
-        <select
-          value={searchSource}
-          onChange={(e) => setSearchSource(e.target.value)}
-          className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white"
-        >
-          <option value="Komiku">Komiku</option>
-          <option value="Mangadex">Mangadex</option>
-          <option value="Komikindo">Komikindo</option>
-        </select>
-      </form>
+      <select
+        value={searchSource}
+        onChange={(e) => setSearchSource(e.target.value)}
+        className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white"
+      >
+        <option value="Komiku">Komiku</option>
+        <option value="Mangadex">Mangadex</option>
+        <option value="Komikindo">Komikindo</option>
+      </select>
+    </form>
 
       {isLoading && (
         <div className="flex justify-center items-center mt-8">
@@ -482,38 +458,37 @@ const SearchPage = ({ onMangaSelect }) => {
   );
 };
 
-const HistoryPage = ({ onMangaSelect }) => {
-  const [history, setHistory] = useState([]);
-
-  useEffect(() => {
-    const storedHistory = JSON.parse(localStorage.getItem('readingHistory')) || [];
-    setHistory(storedHistory);
-  }, []);
-
-  const handleMangaClick = (manga) => {
-    onMangaSelect(manga.lastReadChapter, manga.source);
-  };
+// History Page Component
+const HistoryPage = () => {
+  const [history] = useState([
+    {
+      title: "Recently Read Manga 1",
+      lastRead: "Chapter 45",
+      cover_image: "/api/placeholder/100/150"
+    },
+    {
+      title: "Recently Read Manga 2",
+      lastRead: "Chapter 23",
+      cover_image: "/api/placeholder/100/150"
+    },
+  ]);
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Reading History</h1>
       <div className="space-y-4">
-        {history.map((manga, index) => (
-          <button
-            key={index}
-            onClick={() => handleMangaClick(manga)}
-            className="w-full bg-gray-800 rounded-lg shadow-md overflow-hidden flex text-left hover:bg-gray-700"
-          >
+        {history.map((item, index) => (
+          <div key={index} className="bg-gray-800 rounded-lg shadow-md overflow-hidden flex">
             <img 
-              src={manga.thumbnail || "/api/placeholder/100/150"} 
-              alt={manga.title}
+              src={item.cover_image} 
+              alt={item.title}
               className="w-24 h-32 object-cover"
             />
             <div className="p-3 flex-1">
-              <h3 className="font-medium text-sm">{manga.title}</h3>
-              <p className="text-xs text-gray-400 mt-1">Last read: {manga.lastReadChapter.name}</p>
+              <h3 className="font-medium">{item.title}</h3>
+              <p className="text-sm text-gray-400 mt-1">Last read: {item.lastRead}</p>
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </div>
