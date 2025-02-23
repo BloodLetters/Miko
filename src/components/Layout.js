@@ -607,7 +607,7 @@ const SearchPage = ({ onMangaSelect }) => {
         `https://id-comic-api.vercel.app/api/${searchSource}/search/manga/${cleanUrl}`
       );
       const data = await response.json();
-      setSearchResults(data.data || []);
+      setSearchResults(data.data.results || []);
     } catch (error) {
       console.error('Search error:', error);
     } finally {
