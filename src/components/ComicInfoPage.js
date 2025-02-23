@@ -175,24 +175,22 @@ const ComicInfoPage = ({manga, source, onBack}) => {
                     <button
                         onClick={() => setSelectedChapter(latestChapter)}
                         className="flex-1 p-3 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700">
-                        <span className="text-sm">Chapter {latestChapter
-                                ?.name}</span>
+                        <span className="text-sm">Chapter {latestChapter?.name}</span>
                     </button>
                 </div>
 
                 <div className="mt-4">
                     <h2 className="text-lg font-semibold mb-2">Chapters</h2>
                     <div className="space-y-2">
-                        {comicInfo?.chapter_list
-                                .map((chapter, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setSelectedChapter(chapter)}
-                                        className="w-full p-3 bg-gray-800 rounded-lg flex items-center justify-between hover:bg-gray-700">
-                                        <span className="text-sm">{chapter.name}</span>
-                                        <Clock size={16} className="text-gray-400"/>
-                                    </button>
-                                ))}
+                        {comicInfo?.chapter_list.map((chapter, index) => (
+							<button
+								key={index}
+								onClick={() => setSelectedChapter(chapter)}
+								className="w-full p-3 bg-gray-800 rounded-lg flex items-center justify-between hover:bg-gray-700">
+								<span className="text-sm">{chapter.name}</span>
+								<Clock size={16} className="text-gray-400"/>
+							</button>
+						))}
                     </div>
                 </div>
             </div>

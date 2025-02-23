@@ -1,5 +1,6 @@
-import React, {useState, useEffect} from 'react';
-import {ArrowLeft, ChevronLeft, ChevronRight} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { backupHistoryToGoogle, getCurrentUser } from '../utils/googleAuth';
 
 const ReadComicPage = ({
     chapter,
@@ -9,19 +10,30 @@ const ReadComicPage = ({
     onBack,
     chapterList
 }) => {
-    const [images,
-        setImages] = useState([]);
-    const [loading,
-        setLoading] = useState(true);
-    const [currentChapterIndex,
-        setCurrentChapterIndex] = useState(() => {
+    const [images, setImages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [currentChapterIndex, setCurrentChapterIndex] = useState(() => {
         const initialIndex = chapterList.findIndex(c => c.endpoint === chapter.endpoint);
-        return initialIndex === -1
-            ? 0
-            : initialIndex;
+        return initialIndex === -1 ? 0 : initialIndex;
     });
-    const [localChapterList,
-        setLocalChapterList] = useState(chapterList);
+    const [localChapterList, setLocalChapterList] = useState(chapterList);
+
+    useEffect(() => {
+        const backupHistory = async () => {
+            try {
+                const user = await getCurrentUser();
+                if (user) {
+                    const history = JSON.parse(localStorage.getItem('readingHistory')) || [];
+                    await backupHistoryToGoogle(history);
+                    console.log("History backed up to Google successfully.");
+                }
+            } catch (error) {
+                console.error("Error backing up history to Google:", error);
+            }
+        };
+
+        backupHistory();
+    }, []);
 
 	// console.log(    chapter,
 	// 	mangaInfoURL,

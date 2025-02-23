@@ -4,9 +4,11 @@ import { clearSearchResults } from '../utils/searchUtils';
 const HomePage = ({ onMangaSelect }) => {
     const [popularComics, setPopularComics] = useState({});
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         clearSearchResults();
+
+        // console.log(process.env.API_KEY);
+
         const fetchPopularComics = async () => {
             try {
                 const response = await fetch('https://id-comic-api.vercel.app/api/komiku/popular');
@@ -54,15 +56,13 @@ const HomePage = ({ onMangaSelect }) => {
 
     return (
         <div>
-            {/* Navbar */}
             <nav className="fixed top-0 left-0 right-0 bg-gray-800 p-4 z-50">
                 <div className="container mx-auto">
                     <h1 className="text-white text-xl font-bold">Home</h1>
                 </div>
             </nav>
 
-            {/* Content */}
-            <div className="pt-16 p-4"> {/* Tambahkan pt-16 untuk memberi ruang di bawah navbar */}
+            <div className="pt-16 p-4">
                 <h1 className="text-2xl font-bold mb-4">Popular Comics</h1>
                 {Object.keys(popularComics).map((category) => (
                     <div key={category} className="mb-6">
