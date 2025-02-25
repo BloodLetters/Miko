@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { clearSearchResults } from '../utils/searchUtils';
-import { signInWithGoogle, backupHistoryToGoogle, getCurrentUser, getBackupCount } from '../utils/googleAuth';
+import { signInWithGoogle, backupHistoryToGoogle, getCurrentUser, getBackupCount, getBackupData, logout } from '../utils/googleAuth';
 
 const HistoryPage = ({ onMangaSelect }) => {
     const [history, setHistory] = useState([]);
@@ -28,9 +28,10 @@ const HistoryPage = ({ onMangaSelect }) => {
         const user = await getCurrentUser();
         if (user) {
             setIsAuthenticated(true);
-            setUserName(user.displayName || user.email);
+            setUserName(user.email);
             const count = await getBackupCount(user.uid);
             setBackupCount(count);
+            setHistory(await getBackupData(user.uid))
         }
     };
 
@@ -39,13 +40,32 @@ const HistoryPage = ({ onMangaSelect }) => {
             const user = await signInWithGoogle();
             setIsAuthenticated(true);
             setUserName(user.displayName || user.email);
-            await backupHistoryToGoogle(history);
-            const count = await getBackupCount(user.uid);
-            setBackupCount(count);
-            alert("History berhasil di-backup ke Google!");
+            const backupData = await getBackupData(user.uid);
+            if (backupData) {
+                setHistory(backupData);
+                alert("Data berhasil di-sinkronisasi dari Google!");
+            } else {
+                await backupHistoryToGoogle(history);
+                const count = await getBackupCount(user.uid);
+                setBackupCount(count);
+                alert("History berhasil di-backup ke Google!");
+            }
         } catch (error) {
             console.error('Error during Google backup:', error);
-            alert("Gagal melakukan backup ke Google.");
+            alert("Gagal melakukan sinkronisasi atau backup ke Google.");
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            setIsAuthenticated(false);
+            setUserName(null);
+            setBackupCount(0);
+            alert("Berhasil logout dari akun Google.");
+        } catch (error) {
+            console.error('Error during logout:', error);
+            alert("Gagal logout dari akun Google.");
         }
     };
 
@@ -120,17 +140,27 @@ const HistoryPage = ({ onMangaSelect }) => {
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Reading History</h1>
 
-            <div className="mb-4 p-4 bg-gray-800 rounded-lg shadow-md">
-                <button
-                    onClick={handleGoogleBackup}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                    Google Backup
-                </button>
+            <div className="mb-4 p-4 bg-gray-800 rounded-lg shadow-md flex justify-between items-center">
+                <div>
+                    <button
+                        onClick={handleGoogleBackup}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        Google Backup
+                    </button>
+                    {isAuthenticated && (
+                        <button
+                            onClick={handleLogout}
+                            className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                        >
+                            Logout
+                        </button>
+                    )}
+                </div>
                 {isAuthenticated && (
-                    <div className="mt-2 text-sm text-gray-300">
-                        <p>Logged in as: <span className="font-medium">{userName}</span></p>
-                        <p>Total data backed up: <span className="font-medium">{backupCount}</span></p>
+                    <div className="mt-2 text-sm text-gray-300 text-right">
+                        <p><span className="font-medium text-white">{userName}</span></p>
+                        <p>Total data backed up: <span className="font-medium text-white">{backupCount}</span></p>
                     </div>
                 )}
             </div>

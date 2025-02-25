@@ -1,4 +1,4 @@
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "./dbConfig";
 
@@ -9,7 +9,7 @@ const signInWithGoogle = async () => {
         console.log("User signed in:", user);
         return user;
     } catch (error) {
-        // console.error("Error during Google sign-in:", error);
+        console.error("Error during Google sign-in:", error);
         throw error;
     }
 };
@@ -23,7 +23,7 @@ const backupHistoryToGoogle = async (history) => {
             history: history,
             lastBackup: new Date().toISOString(),
         });
-        // console.log("History backed up to Firestore successfully.");
+        console.log("History backed up to Firestore successfully.");
     } else {
         throw new Error("User not authenticated");
     }
@@ -45,4 +45,23 @@ const getBackupCount = async (userId) => {
     return 0;
 };
 
-export { signInWithGoogle, backupHistoryToGoogle, getCurrentUser, getBackupCount };
+const getBackupData = async (userId) => {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+        return userDoc.data().history || null;
+    }
+    return null;
+};
+
+const logout = async () => {
+    try {
+        await signOut(auth);
+        console.log("User signed out successfully.");
+    } catch (error) {
+        console.error("Error during logout:", error);
+        throw error;
+    }
+};
+
+export { signInWithGoogle, backupHistoryToGoogle, getCurrentUser, getBackupCount, getBackupData, logout };
