@@ -35,13 +35,6 @@ const ReadComicPage = ({
         backupHistory();
     }, []);
 
-	// console.log(    chapter,
-	// 	mangaInfoURL,
-	// 	source,
-	// 	manga,
-	// 	onBack,
-	// 	chapterList);
-
     useEffect(() => {
         setCurrentChapterIndex(prevIndex => {
             const newIndex = localChapterList.findIndex(c => c.endpoint === chapter.endpoint);
@@ -56,7 +49,7 @@ const ReadComicPage = ({
     }, [chapterList]);
 
     useEffect(() => {
-        const fetchChapterImages = async() => {
+        const fetchChapterImages = async () => {
             setLoading(true);
             try {
                 const cleanUrl = chapter
@@ -223,8 +216,8 @@ const ReadComicPage = ({
                         onClick={handlePreviousChapter}
                         disabled={!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1))}
                         className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${ !localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1))
-                        ? 'bg-gray-700 text-gray-500'
-                        : 'bg-blue-600 text-white'}`}>
+                            ? 'bg-gray-700 text-gray-500'
+                            : 'bg-blue-600 text-white'}`}>
                         <ChevronLeft size={20}/>
                         <span>Previous</span>
                     </button>
@@ -233,8 +226,8 @@ const ReadComicPage = ({
                         onClick={handleNextChapter}
                         disabled={!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1))}
                         className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${ !localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1))
-                        ? 'bg-gray-700 text-gray-500'
-                        : 'bg-blue-600 text-white'}`}>
+                            ? 'bg-gray-700 text-gray-500'
+                            : 'bg-blue-600 text-white'}`}>
                         <span>Next</span>
                         <ChevronRight size={20}/>
                     </button>

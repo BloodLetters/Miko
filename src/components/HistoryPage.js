@@ -35,38 +35,8 @@ const HistoryPage = ({ onMangaSelect }) => {
         }
     };
 
-    const handleGoogleBackup = async () => {
-        try {
-            const user = await signInWithGoogle();
-            setIsAuthenticated(true);
-            setUserName(user.displayName || user.email);
-            const backupData = await getBackupData(user.uid);
-            if (backupData) {
-                setHistory(backupData);
-                alert("Data berhasil di-sinkronisasi dari Google!");
-            } else {
-                await backupHistoryToGoogle(history);
-                const count = await getBackupCount(user.uid);
-                setBackupCount(count);
-                alert("History berhasil di-backup ke Google!");
-            }
-        } catch (error) {
-            console.error('Error during Google backup:', error);
-            alert("Gagal melakukan sinkronisasi atau backup ke Google.");
-        }
-    };
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-            setIsAuthenticated(false);
-            setUserName(null);
-            setBackupCount(0);
-            alert("Berhasil logout dari akun Google.");
-        } catch (error) {
-            console.error('Error during logout:', error);
-            alert("Gagal logout dari akun Google.");
-        }
+    const handleGoogleBackup = () => {
+        setShowWarning(true);
     };
 
     const confirmBackup = async () => {
@@ -78,10 +48,29 @@ const HistoryPage = ({ onMangaSelect }) => {
             await backupHistoryToGoogle(history);
             const count = await getBackupCount(user.uid);
             setBackupCount(count);
-            alert("History berhasil di-backup ke Google!");
+            // alert("History berhasil di-backup ke Google!");
         } catch (error) {
             console.error('Error during Google backup:', error);
-            alert("Gagal melakukan backup ke Google.");
+            // alert("Gagal melakukan backup ke Google.");
+        }
+    };
+
+    const handleCancel = () => {
+        setShowWarning(false);
+    };
+
+    const handleLogout = async () => {
+        try {
+            localStorage.setItem('readingHistory', JSON.stringify(history));
+            
+            await logout();
+            setIsAuthenticated(false);
+            setUserName(null);
+            setBackupCount(0);
+            alert("Berhasil logout dari akun Google.");
+        } catch (error) {
+            console.error('Error during logout:', error);
+            alert("Gagal logout dari akun Google.");
         }
     };
 
@@ -174,7 +163,7 @@ const HistoryPage = ({ onMangaSelect }) => {
                         </p>
                         <div className="flex justify-end space-x-4">
                             <button
-                                onClick={() => setShowWarning(false)}
+                                onClick={handleCancel}
                                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                             >
                                 Cancel
