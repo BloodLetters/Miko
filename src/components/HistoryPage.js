@@ -9,6 +9,8 @@ const HistoryPage = ({ onMangaSelect }) => {
     const [userName, setUserName] = useState(null);
     const [backupCount, setBackupCount] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
+    const [showLogoutWarning, setShowLogoutWarning] = useState(false);
+
 
     useEffect(() => {
         clearSearchResults();
@@ -40,13 +42,19 @@ const HistoryPage = ({ onMangaSelect }) => {
     };
 
     const confirmBackup = async () => {
+        const user = await getCurrentUser();
         setShowWarning(false);
         try {
             const user = await signInWithGoogle();
             setIsAuthenticated(true);
             setUserName(user.displayName || user.email);
-            await backupHistoryToGoogle(history);
+            
+            if(!user) {
+                await backupHistoryToGoogle(history);
+            }
+
             const count = await getBackupCount(user.uid);
+            setHistory(await getBackupData(user.uid))
             setBackupCount(count);
             // alert("History berhasil di-backup ke Google!");
         } catch (error) {
@@ -59,7 +67,12 @@ const HistoryPage = ({ onMangaSelect }) => {
         setShowWarning(false);
     };
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
+        setShowLogoutWarning(true);
+    };
+    
+    const confirmLogout = async () => {
+        setShowLogoutWarning(false);
         try {
             localStorage.setItem('readingHistory', JSON.stringify(history));
             
@@ -67,11 +80,15 @@ const HistoryPage = ({ onMangaSelect }) => {
             setIsAuthenticated(false);
             setUserName(null);
             setBackupCount(0);
-            alert("Berhasil logout dari akun Google.");
+            // alert("Berhasil logout dari akun Google.");
         } catch (error) {
             console.error('Error during logout:', error);
-            alert("Gagal logout dari akun Google.");
+            // alert("Gagal logout dari akun Google.");
         }
+    };
+    
+    const cancelLogout = () => {
+        setShowLogoutWarning(false);
     };
 
     const handleMangaClick = async (historyItem) => {
@@ -170,6 +187,31 @@ const HistoryPage = ({ onMangaSelect }) => {
                             </button>
                             <button
                                 onClick={confirmBackup}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showLogoutWarning && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                        <h2 className="text-xl font-bold mb-4">Warning</h2>
+                        <p className="mb-4">
+                            Data tidak akan disimpan lagi ke dalam cloud, namun history yang telah Anda baca akan tetap ada. Apakah Anda yakin ingin melanjutkan?
+                        </p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={cancelLogout}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmLogout}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                             >
                                 Continue
