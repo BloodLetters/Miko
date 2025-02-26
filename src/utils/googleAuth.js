@@ -23,7 +23,7 @@ const backupHistoryToGoogle = async (history) => {
             history: history,
             lastBackup: new Date().toISOString(),
         });
-        console.log("History backed up to Firestore successfully.");
+        // console.log("History backed up to Firestore successfully.");
     } else {
         throw new Error("User not authenticated");
     }
@@ -54,6 +54,16 @@ const getBackupData = async (userId) => {
     return null;
 };
 
+const isChapterInFirebase = async (userId, chapterEndpoint) => {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+        const history = userDoc.data().history || [];
+        return history.some(chapter => chapter.lastReadChapter.endpoint === chapterEndpoint);
+    }
+    return false;
+};
+
 const logout = async () => {
     try {
         await signOut(auth);
@@ -64,4 +74,4 @@ const logout = async () => {
     }
 };
 
-export { signInWithGoogle, backupHistoryToGoogle, getCurrentUser, getBackupCount, getBackupData, logout };
+export { signInWithGoogle, backupHistoryToGoogle, getCurrentUser, getBackupCount, getBackupData, isChapterInFirebase, logout };

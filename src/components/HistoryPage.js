@@ -77,7 +77,7 @@ const HistoryPage = ({ onMangaSelect }) => {
     const handleMangaClick = async (historyItem) => {
         setLoading(true);
         try {
-            const cleanUrl = historyItem.manga_url.replace(/^\/+/, "");
+            const cleanUrl = historyItem.manga_url.replace(/^\//, "");
             const response = await fetch(`https://id-comic-api.vercel.app/api/${historyItem.source}/info/${cleanUrl}`);
             const data = await response.json();
 

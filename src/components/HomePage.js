@@ -63,7 +63,7 @@ const HomePage = ({ onMangaSelect }) => {
             </nav>
 
             <div className="pt-16 p-4">
-                <h1 className="text-2xl font-bold mb-4">Popular Comics</h1>
+                {/* <h1 className="text-2xl font-bold mb-4">Popular Comics</h1> */}
                 {Object.keys(popularComics).map((category) => (
                     <div key={category} className="mb-6">
                         <h2 className="text-lg font-semibold mb-2">{category.replace(/_/g, ' ')}</h2>
