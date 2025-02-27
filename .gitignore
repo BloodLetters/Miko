@@ -14,11 +14,14 @@ node_modules/
 # misc
 .DS_Store
 Miko/
+Key/
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+capacitor.config.ts
+android/
 
 npm-debug.log*
 yarn-debug.log*
