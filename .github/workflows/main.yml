@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Build React
-        run: npm build
+        run: npm run build
 
       - name: Add Android platform
         run: npx cap add android
