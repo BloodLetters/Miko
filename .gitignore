@@ -20,8 +20,9 @@ Key/
 .env.development.local
 .env.test.local
 .env.production.local
-capacitor.config.ts
 android/
+*.keystore
+*.jks
 
 npm-debug.log*
 yarn-debug.log*
@@ -30,3 +31,4 @@ yarn-error.log*
 
 # development
 backup/
+build.bat

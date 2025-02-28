@@ -23,7 +23,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build-android": "npm run build && npx cap sync android",
+    "build-debug-apk": "npm run build-android && cd android && ./gradlew assembleDebug",
+    "build-release-apk": "npm run build-android && cd android && ./gradlew assembleRelease",
+    "open-android": "npx cap open android"
   },
   "eslintConfig": {
     "extends": [
