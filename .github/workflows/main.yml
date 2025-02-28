@@ -1,10 +1,9 @@
-name: Build Android APK
+name: Build and Release Android APK
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    tags:
+      - 'v*.*'
 
 jobs:
   build:
@@ -42,8 +41,50 @@ jobs:
           cd android
           ./gradlew build
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release.apk
           path: android/app/build/outputs/apk/release/app-release.apk
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get previous tag
+        id: prev-tag
+        run: |
+          prev_tag=$(git describe --tags --abbrev=0 HEAD^1)
+          echo "previous_tag=$prev_tag" >> $GITHUB_ENV
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "Generating changelog from ${GITHUB_ENV:previous_tag} to ${GITHUB_REF#refs/tags/}"
+          notes=$(git log ${GITHUB_ENV:previous_tag}..${GITHUB_REF#refs/tags/} --pretty=format:"%h - %s (%an, %ad)" --date=short)
+          echo "changelog=$notes" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }} Release
+          body: ${{ env.changelog }}
+          draft: false
+          prerelease: false
+
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: android/app/build/outputs/apk/release/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
