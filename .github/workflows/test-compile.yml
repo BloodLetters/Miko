@@ -1,0 +1,43 @@
+name: Test Compile Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-compile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React
+        run: CI=false npm run build
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build APK
+        run: |
+          cd android
+          ./gradlew build
+
+      - name: listing directory
+        run: ls
