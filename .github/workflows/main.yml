@@ -61,16 +61,16 @@ jobs:
         run: |
           prev_tag=$(git describe --tags --abbrev=0 HEAD^1 || echo "")
           echo "previous_tag=$prev_tag" >> $GITHUB_ENV
-
+      
       - name: Generate changelog
         id: changelog
         run: |
-          if [ -z "$GITHUB_ENV:previous_tag" ]; then
+          if [ -z "$prev_tag" ]; then
             echo "No previous tag found. Generating changelog for the current tag only."
             notes=$(git log HEAD^1..HEAD --pretty=format:"%h - %s (%an, %ad)" --date=short)
           else
-            echo "Generating changelog from ${GITHUB_ENV:previous_tag} to ${GITHUB_REF#refs/tags/}"
-            notes=$(git log ${GITHUB_ENV:previous_tag}..${GITHUB_REF#refs/tags/} --pretty=format:"%h - %s (%an, %ad)" --date=short)
+            echo "Generating changelog from $prev_tag to ${GITHUB_REF#refs/tags/}"
+            notes=$(git log $prev_tag..${GITHUB_REF#refs/tags/} --pretty=format:"%h - %s (%an, %ad)" --date=short)
           fi
           echo "changelog=$notes" >> $GITHUB_ENV
 
