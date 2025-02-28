@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Miko',
   webDir: 'build',
   server: {
-    androidScheme: 'https'
+    hostname: '127.0.0.1',
+    cleartext: true
   }
 };
 
