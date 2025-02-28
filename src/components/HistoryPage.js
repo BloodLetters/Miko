@@ -41,7 +41,6 @@ const HistoryPage = ({ onMangaSelect }) => {
     };
 
     const confirmBackup = async () => {
-        const user = await getCurrentUser();
         setShowWarning(false);
         try {
             const user = await signInWithGoogle();

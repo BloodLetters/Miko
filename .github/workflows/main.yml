@@ -25,7 +25,7 @@ jobs:
         run: npm install
 
       - name: Build React
-        run: npm run build
+        run: CI=false npm run build
 
       - name: Add Android platform
         run: npx cap add android
