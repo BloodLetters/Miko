@@ -39,5 +39,7 @@ jobs:
           cd android
           ./gradlew build
 
-      - name: listing directory
-        run: ls
+      - name: Display compiled files
+        run: |
+          echo "Compiled files in android/app/build/outputs:"
+          ls -R android/app/build/outputs
