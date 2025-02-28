@@ -39,9 +39,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        
       - name: Build APK
         run: |
           cd android
+          # Create local.properties with SDK path
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
           ./gradlew build
 
       - name: Rename APK
