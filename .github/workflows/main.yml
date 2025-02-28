@@ -14,43 +14,68 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm ci
+          npm install -g @capacitor/cli
 
-      - name: Build React
-        run: CI=false npm run build
+      - name: Set build environment
+        run: |
+          echo "REACT_APP_ENV=production" > .env
+          echo "PUBLIC_URL=." >> .env
+
+      - name: Build React (production mode)
+        run: |
+          CI=false npm run build
 
       - name: Add Android platform
-        run: npx cap add android
+        run: |
+          npx cap add android || true
+
+      - name: Update Capacitor
+        run: |
+          npx cap update android
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        run: |
+          npx cap sync android
 
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
-        
-      - name: Build APK
+
+      - name: Configure gradle for build
         run: |
           cd android
-          # Create local.properties with SDK path
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          ./gradlew build
+          # Ensure gradlew is executable
+          chmod +x ./gradlew
+        
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
 
-      - name: Rename APK
-        run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Miko.apk
+      - name: Rename and move APK
+        run: |
+          mkdir -p release
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/Miko.apk
 
       - name: Extract tag name
         id: get_tag
@@ -64,5 +89,5 @@ jobs:
           name: Release ${{ env.TAG_NAME }}
           draft: false
           prerelease: false
-          files: android/app/build/outputs/apk/debug/Miko.apk
+          files: release/Miko.apk
           token: ${{ secrets.GITHUB_TOKEN }}
