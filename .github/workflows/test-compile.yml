@@ -1,4 +1,4 @@
-name: Test Compile
+name: Build and Upload Android APK
 on:
   workflow_dispatch:  # Allow manual triggering
   push:
@@ -64,7 +64,7 @@ jobs:
           mkdir -p artifacts
           cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/Miko-${{ env.VERSION }}.apk
       - name: Upload APK as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Miko-APK
           path: artifacts/Miko-${{ env.VERSION }}.apk
