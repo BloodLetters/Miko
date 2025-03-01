@@ -1,4 +1,4 @@
-name: Test Compile Capacitor APK
+name: Build Capacitor APK on Windows
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # Menggunakan runner Windows
 
     steps:
       - name: Checkout repository
@@ -28,7 +28,8 @@ jobs:
 
       - name: Build React
         run: |
-          CI=false npm run build
+          $env:CI = "false"
+          npm run build
 
       - name: Add Android platform
         run: |
@@ -55,18 +56,24 @@ jobs:
       - name: Configure gradle for build
         run: |
           cd android
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          chmod +x ./gradlew
+          echo "sdk.dir=$env:ANDROID_HOME" > local.properties
+          .\gradlew --version
 
-      - name: Build Debug APK & Save Logs
+      - name: Build Debug APK
         run: |
           cd android
-          ./gradlew build
+          .\gradlew assembleDebug
 
-      - name: Rename and move APK
+      - name: Build Release APK
+        run: |
+          cd android
+          .\gradlew assembleRelease
+
+      - name: Rename and move APKs
         run: |
           mkdir -p release
           mv android/app/build/outputs/apk/debug/app-debug.apk release/Miko-Debug.apk
+          mv android/app/build/outputs/apk/release/app-release-unsigned.apk release/Miko-Release-unsigned.apk
 
       - name: Copy Logs to Release Folder
         run: |
@@ -75,11 +82,11 @@ jobs:
           cp android/app/build/outputs/logs/manifest-merger-release-report.txt release/logs/
           cp android/app/build/reports/lint-results-debug.txt release/logs/
 
-      - name: Upload APK as Artifact
+      - name: Upload APKs as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Miko-Debug-APK
-          path: release/Miko-Debug.apk
+          name: APKs
+          path: release/
 
       - name: Upload Logs as Artifact
         uses: actions/upload-artifact@v4
