@@ -1,13 +1,13 @@
-name: Collect Build Logs
+name: Test Compile Capacitor APK
 
 on:
-  workflow_dispatch:  # Bisa dijalankan secara manual dari GitHub Actions
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  collect-logs:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -52,7 +52,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: Configure Gradle
+      - name: Configure gradle for build
         run: |
           cd android
           echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -61,16 +61,38 @@ jobs:
       - name: Build Debug APK & Save Logs
         run: |
           cd android
-          ./gradlew assembleDebug | tee ../../build-log.txt
+          ./gradlew build
 
-      - name: Find and Zip All Log Files
+      - name: Rename and move APK
         run: |
-          mkdir -p logs
-          find android/app/build -type f -name "*.txt" -o -name "*.xml" -o -name "*.log" -exec cp {} logs/ \;
-          zip -r logs.zip logs
+          mkdir -p release
+          mv android/app/build/outputs/apk/debug/app-debug.apk release/Miko-Debug.apk
+
+      - name: Copy Logs to Release Folder
+        run: |
+          mkdir -p release/logs
+          cp android/app/build/outputs/logs/manifest-merger-debug-report.txt release/logs/
+          cp android/app/build/outputs/logs/manifest-merger-release-report.txt release/logs/
+          cp android/app/build/reports/lint-results-debug.txt release/logs/
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Miko-Debug-APK
+          path: release/Miko-Debug.apk
 
       - name: Upload Logs as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Build-Logs
-          path: logs.zip
+          path: release/logs/
+
+      - name: Save directory listing to file
+        run: |
+          ls -R android > android-file-list.txt
+
+      - name: Upload Directory Listing
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-Folder-Listing
+          path: android-file-list.txt
