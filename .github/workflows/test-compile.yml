@@ -62,12 +62,7 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          .\gradlew assembleDebug
-
-      - name: Build Release APK
-        run: |
-          cd android
-          .\gradlew assembleRelease
+          .\gradlew build
 
       - name: Rename and move APKs
         run: |
