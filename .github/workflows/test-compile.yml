@@ -1,13 +1,13 @@
-name: Test Compile Capacitor APK
+name: Collect Build Logs
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Bisa dijalankan secara manual dari GitHub Actions
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  collect-logs:
     runs-on: ubuntu-latest
 
     steps:
@@ -52,7 +52,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: Configure gradle for build
+      - name: Configure Gradle
         run: |
           cd android
           echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -61,35 +61,16 @@ jobs:
       - name: Build Debug APK & Save Logs
         run: |
           cd android
-          ./gradlew build
-  
-      # - name: Upload logs
-      #   run: |
-      #     mv android/app/build/outputs/logs/manifest-merger-debug-report.txt release/manifest-debug.txt
-      #     mv android/app/build/outputs/logs/manifest-merger-release-report.txt release/manifest-release.txt
+          ./gradlew assembleDebug | tee ../../build-log.txt
 
-      - name: Rename and move APK
+      - name: Find and Zip All Log Files
         run: |
-          mkdir -p release
-          mv android/app/build/outputs/apk/debug/app-debug.apk release/Miko-Debug.apk
+          mkdir -p logs
+          find android/app/build -type f -name "*.txt" -o -name "*.xml" -o -name "*.log" -exec cp {} logs/ \;
+          zip -r logs.zip logs
 
-      - name: Upload APK as Artifact
+      - name: Upload Logs as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Miko-Debug-APK
-          path: release/Miko-Debug.apk
-
-      - name: Save directory listing to file
-        run: |
-          ls -R android > android-file-list.txt
-      
-      - name: Upload Directory Listing
-        uses: actions/upload-artifact@v4
-        with:
-          name: Android-Folder-Listing
-          path: android-file-list.txt
-      # - name: Upload Build Logs
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: Build-Logs
-      #     path: release/reports.txt
+          name: Build-Logs
+          path: logs.zip
