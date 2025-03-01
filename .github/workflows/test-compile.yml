@@ -1,45 +1,81 @@
-name: Test Compile Android APK
+name: Test Compile Capacitor APK
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Trigger manual di GitHub Actions
+
+permissions:
+  contents: write
 
 jobs:
-  test-compile:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm ci
 
       - name: Build React
-        run: CI=false npm run build
+        run: |
+          CI=false npm run build
 
       - name: Add Android platform
-        run: npx cap add android
+        run: |
+          npx cap add android
+
+      - name: Update Capacitor
+        run: |
+          npx cap update
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        run: |
+          npx cap sync
 
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
-      - name: Build APK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Configure gradle for build
         run: |
           cd android
-          ./gradlew build
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          chmod +x ./gradlew
 
-      - name: Display compiled files
+      - name: Build Debug APK & Save Logs
         run: |
-          echo "Compiled files in android/app/build/outputs:"
-          ls -R android/app/build/outputs
+          cd android
+          ./gradlew assembleDebug | tee ../../build-log.txt
+
+      - name: Rename and move APK
+        run: |
+          mkdir -p release
+          mv android/app/build/outputs/apk/debug/app-debug.apk release/Miko-Debug.apk
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Miko-Debug-APK
+          path: release/Miko-Debug.apk
+
+      - name: Upload Build Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build-Logs
+          path: build-log.txt
