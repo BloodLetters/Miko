@@ -26,28 +26,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
+          npm ci
 
-      - name: Set build environment
-        run: |
-          echo "REACT_APP_ENV=production" > .env
-          echo "PUBLIC_URL=." >> .env
-
-      - name: Build React (production mode)
+      - name: Build React
         run: |
           CI=false npm run build
 
       - name: Add Android platform
         run: |
-          npx cap add android || true
+          npx cap add android
 
       - name: Update Capacitor
         run: |
-          npx cap update android
+          npx cap update
 
       - name: Sync Capacitor
         run: |
-          npx cap sync android
+          npx cap sync
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -63,22 +58,21 @@ jobs:
         run: |
           cd android
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          # Ensure gradlew is executable
           chmod +x ./gradlew
         
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
-
-      - name: Rename and move APK
-        run: |
-          mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk release/Miko.apk
+          ./gradlew build
 
       - name: Extract tag name
         id: get_tag
         run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Rename and move APK
+        run: |
+          mkdir -p release
+          mv android/app/build/outputs/apk/debug/app-debug.apk release/Miko-${{ env.TAG_NAME }}.apk
 
       - name: Create Release
         id: create_release
@@ -88,5 +82,5 @@ jobs:
           name: Release ${{ env.TAG_NAME }}
           draft: false
           prerelease: false
-          files: release/Miko.apk
+          files: release/Miko-${{ env.TAG_NAME }}.apk
           token: ${{ secrets.GITHUB_TOKEN }}

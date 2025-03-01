@@ -23,6 +23,7 @@ Key/
 android/
 *.keystore
 *.jks
+flow.txt
 
 npm-debug.log*
 yarn-debug.log*
