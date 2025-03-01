@@ -1,5 +1,6 @@
-name: Build and Release Android APK
+name: Test Compile
 on:
+  workflow_dispatch:  # Allow manual triggering
   push:
     tags:
       - 'v*.*'
@@ -48,22 +49,23 @@ jobs:
           cd android
           ./gradlew build
         shell: bash
-      - name: Extract tag name
-        id: get_tag
-        shell: bash
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-      - name: Rename and move APK
+      - name: Extract version info
+        id: get_version
         shell: bash
         run: |
-          mkdir -p release
-          cp android/app/build/outputs/apk/debug/app-debug.apk release/Miko-${{ env.TAG_NAME }}.apk
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          else
+            echo "VERSION=manual-build-$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
+          fi
+      - name: Rename APK
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/Miko-${{ env.VERSION }}.apk
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: Release ${{ env.TAG_NAME }}
-          draft: false
-          prerelease: false
-          files: release/Miko-${{ env.TAG_NAME }}.apk
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Miko-APK
+          path: artifacts/Miko-${{ env.VERSION }}.apk
+          retention-days: 90
