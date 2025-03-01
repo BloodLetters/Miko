@@ -61,7 +61,13 @@ jobs:
       - name: Build Debug APK & Save Logs
         run: |
           cd android
-          ./gradlew assembleDebug | tee ../../build-log.txt
+          ./gradlew build
+  
+      - name: Upload logs
+        run: |
+          mv android/app/build/reports/lint-results-debug.txt release/reports.txt
+          mv android/app/build/outputs/logs/manifest-merger-debug-report.txt release/manifest-debug.txt
+          mv android/app/build/outputs/logs/manifest-merger-release-report.txt release/manifest-release.txt
 
       - name: Rename and move APK
         run: |
@@ -78,4 +84,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Build-Logs
-          path: build-log.txt
+          path: release/reports.txt
