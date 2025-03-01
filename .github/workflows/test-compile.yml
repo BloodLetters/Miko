@@ -1,100 +1,69 @@
-name: Build Capacitor APK on Windows
-
+name: Build and Release Android APK
 on:
-  workflow_dispatch:
-
+  push:
+    tags:
+      - 'v*.*'
 permissions:
   contents: write
-
 jobs:
   build:
-    runs-on: windows-latest  # Menggunakan runner Windows
-
+    runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '22'
           cache: 'npm'
-
       - name: Install dependencies
-        run: |
-          npm ci
-
+        run: npm ci
       - name: Build React
-        run: |
-          $env:CI = "false"
-          npm run build
-
+        run: npm run build
+        env:
+          CI: false
       - name: Add Android platform
-        run: |
-          npx cap add android
-
+        run: npx cap add android
       - name: Update Capacitor
-        run: |
-          npx cap update
-
+        run: npx cap update
       - name: Sync Capacitor
-        run: |
-          npx cap sync
-
+        run: npx cap sync
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
-
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
-
       - name: Configure gradle for build
+        shell: bash
         run: |
           cd android
-          echo "sdk.dir=$env:ANDROID_HOME" > local.properties
-          .\gradlew --version
-
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
       - name: Build Debug APK
         run: |
           cd android
-          .\gradlew build
-
-      - name: Rename and move APKs
+          ./gradlew build
+        shell: bash
+      - name: Extract tag name
+        id: get_tag
+        shell: bash
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Rename and move APK
+        shell: bash
         run: |
           mkdir -p release
-          mv android/app/build/outputs/apk/debug/app-debug.apk release/Miko-Debug.apk
-          mv android/app/build/outputs/apk/release/app-release-unsigned.apk release/Miko-Release-unsigned.apk
-
-      - name: Copy Logs to Release Folder
-        run: |
-          mkdir -p release/logs
-          cp android/app/build/outputs/logs/manifest-merger-debug-report.txt release/logs/
-          cp android/app/build/outputs/logs/manifest-merger-release-report.txt release/logs/
-          cp android/app/build/reports/lint-results-debug.txt release/logs/
-
-      - name: Upload APKs as Artifact
-        uses: actions/upload-artifact@v4
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/Miko-${{ env.TAG_NAME }}.apk
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          name: APKs
-          path: release/
-
-      - name: Upload Logs as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-Logs
-          path: release/logs/
-
-      - name: Save directory listing to file
-        run: |
-          ls -R android > android-file-list.txt
-
-      - name: Upload Directory Listing
-        uses: actions/upload-artifact@v4
-        with:
-          name: Android-Folder-Listing
-          path: android-file-list.txt
+          tag_name: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          draft: false
+          prerelease: false
+          files: release/Miko-${{ env.TAG_NAME }}.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
