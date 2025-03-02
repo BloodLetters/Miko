@@ -1,4 +1,7 @@
 {
+    "build": {
+        "ignoreCommand": "git diff --quiet HEAD^ HEAD -- .github/"
+    },
     "rewrites": [
         {
             "source": "/api/komiku/:path*",
