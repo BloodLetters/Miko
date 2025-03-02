@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { clearSearchResults } from '../utils/searchUtils';
+import { useTheme } from '../utils/Theme';
 
 const HomePage = ({ onMangaSelect }) => {
+    const { theme } = useTheme();
     const [popularComics, setPopularComics] = useState({});
     const [loading, setLoading] = useState(true);
 
@@ -46,7 +48,7 @@ const HomePage = ({ onMangaSelect }) => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-900">
+            <div className={`flex justify-center items-center h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
                 <div className="relative">
                     <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -58,16 +60,11 @@ const HomePage = ({ onMangaSelect }) => {
     }
 
     return (
-        <div className="bg-gray-900 min-h-screen">
-            <nav className="fixed top-0 left-0 right-0 bg-gray-800/95 backdrop-blur-sm z-50 shadow-lg">
+        <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
+            <nav className={`fixed top-0 left-0 right-0 ${theme === 'dark' ? 'bg-gray-800/95' : 'bg-white/95'} backdrop-blur-sm z-50 shadow-lg`}>
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex justify-between items-center">
-                        <h1 className="text-2xl font-bold text-white">Miko</h1>
-                        {/* <div className="flex items-center space-x-2">
-                            <div className="text-sm text-gray-400">
-                                Your Favor
-                            </div>
-                        </div> */}
+                        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Miko</h1>
                     </div>
                 </div>
             </nav>
@@ -76,19 +73,18 @@ const HomePage = ({ onMangaSelect }) => {
                 {Object.keys(popularComics).map((category) => (
                     <div key={category} className="mb-8">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-white capitalize">
+                            <h2 className={`text-xl font-bold capitalize ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                 {category.replace(/_/g, ' ')}
                             </h2>
-                            {/* <button className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200">
-                                View All
-                            </button> */}
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                             {popularComics[category]?.map((manga, index) => (
                                 <button
                                     key={index}
                                     onClick={() => handleMangaClick(manga)}
-                                    className="group relative flex flex-col bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                                    className={`group relative flex flex-col ${
+                                        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                                    } rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
                                 >
                                     <div className="relative aspect-[3/4] overflow-hidden">
                                         <div className="absolute inset-0 bg-gray-900/30 group-hover:bg-gray-900/0 transition-all duration-300"></div>
@@ -107,9 +103,11 @@ const HomePage = ({ onMangaSelect }) => {
                                             </h3>
                                         </div>
                                     </div>
-                                    <div className="p-3 flex-1 flex flex-col justify-between bg-gray-800/95">
+                                    <div className={`p-3 flex-1 flex flex-col justify-between ${
+                                        theme === 'dark' ? 'bg-gray-800/95' : 'bg-white/95'
+                                    }`}>
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs text-gray-400 line-clamp-1">
+                                            <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} line-clamp-1`}>
                                                 {manga.genreReaders}
                                             </span>
                                         </div>

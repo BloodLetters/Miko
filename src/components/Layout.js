@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {Home, Search, History, Settings} from 'lucide-react';
+import { useTheme } from '../utils/Theme';
 import HomePage from './HomePage';
 import SearchPage from './SearchPage';
 import HistoryPage from './HistoryPage';
@@ -8,6 +9,7 @@ import ReadComicPage from './ReadComicPage';
 import SettingsPage from './SettingsPage';
 
 const Layout = ({children}) => {
+    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState('home');
     const [selectedManga, setSelectedManga] = useState(null);
     const [currentSource, setCurrentSource] = useState('');
@@ -25,7 +27,11 @@ const Layout = ({children}) => {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-gray-900 text-gray-100">
+        <div className={`h-screen flex flex-col ${
+            theme === 'dark' 
+                ? 'bg-gray-900 text-gray-100' 
+                : 'bg-gray-100 text-gray-900'
+        }`}>
             <main className="flex-1 overflow-y-auto pb-16">
                 {selectedManga
                     ? (selectedManga.isFromHistory
@@ -60,37 +66,57 @@ const Layout = ({children}) => {
             </main>
 
             {!selectedManga && (
-                <nav className="fixed bottom-0 w-full bg-gray-800 border-t border-gray-700">
+                <nav className={`fixed bottom-0 w-full ${
+                    theme === 'dark'
+                        ? 'bg-gray-800 border-gray-700'
+                        : 'bg-white border-gray-200'
+                } border-t`}>
                     <div className="flex justify-around items-center h-16">
                         <button
                             onClick={() => setActiveTab('home')}
-                            className={`flex flex-col items-center ${activeTab === 'home'
-                            ? 'text-blue-400'
-                            : 'text-gray-400'}`}>
+                            className={`flex flex-col items-center ${
+                                activeTab === 'home'
+                                    ? 'text-blue-500'
+                                    : theme === 'dark'
+                                        ? 'text-gray-400'
+                                        : 'text-gray-600'
+                            }`}>
                             <Home size={24}/>
                             <span className="text-xs mt-1">Home</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('search')}
-                            className={`flex flex-col items-center ${activeTab === 'search'
-                            ? 'text-blue-400'
-                            : 'text-gray-400'}`}>
+                            className={`flex flex-col items-center ${
+                                activeTab === 'search'
+                                    ? 'text-blue-500'
+                                    : theme === 'dark'
+                                        ? 'text-gray-400'
+                                        : 'text-gray-600'
+                            }`}>
                             <Search size={24}/>
                             <span className="text-xs mt-1">Search</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('history')}
-                            className={`flex flex-col items-center ${activeTab === 'history'
-                            ? 'text-blue-400'
-                            : 'text-gray-400'}`}>
+                            className={`flex flex-col items-center ${
+                                activeTab === 'history'
+                                    ? 'text-blue-500'
+                                    : theme === 'dark'
+                                        ? 'text-gray-400'
+                                        : 'text-gray-600'
+                            }`}>
                             <History size={24}/>
                             <span className="text-xs mt-1">History</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('settings')}
-                            className={`flex flex-col items-center ${activeTab === 'settings'
-                            ? 'text-blue-400'
-                            : 'text-gray-400'}`}>
+                            className={`flex flex-col items-center ${
+                                activeTab === 'settings'
+                                    ? 'text-blue-500'
+                                    : theme === 'dark'
+                                        ? 'text-gray-400'
+                                        : 'text-gray-600'
+                            }`}>
                             <Settings size={24}/>
                             <span className="text-xs mt-1">Settings</span>
                         </button>

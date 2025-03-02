@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTheme } from '../utils/Theme';
 import { backupHistoryToGoogle, getCurrentUser, isChapterInFirebase } from '../utils/googleAuth';
 
 const ReadComicPage = ({
@@ -10,6 +11,7 @@ const ReadComicPage = ({
     onBack,
     chapterList
 }) => {
+    const { theme } = useTheme();
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentChapterIndex, setCurrentChapterIndex] = useState(() => {
@@ -164,15 +166,23 @@ const ReadComicPage = ({
     };
 
     return (
-        <div className="min-h-screen bg-black relative">
-            <div className="fixed top-0 left-0 right-0 bg-gray-900 z-50">
+        <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-100'} relative`}>
+            <div className={`fixed top-0 left-0 right-0 ${
+                theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+            } z-50 shadow-lg`}>
                 <div className="flex items-center justify-between p-4">
                     <button
                         onClick={() => onBack(null)}
-                        className="p-2 rounded-full hover:bg-gray-800">
-                        <ArrowLeft size={24} className="text-white"/>
+                        className={`p-2 rounded-full ${
+                            theme === 'dark' 
+                                ? 'hover:bg-gray-800 text-white' 
+                                : 'hover:bg-gray-100 text-gray-900'
+                        }`}>
+                        <ArrowLeft size={24}/>
                     </button>
-                    <h2 className="text-white text-sm truncate max-w-[200px]">
+                    <h2 className={`${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    } text-sm truncate max-w-[200px]`}>
                         {chapter.name}
                     </h2>
                     <div className="w-8"/>
@@ -182,7 +192,9 @@ const ReadComicPage = ({
             <div className="pt-16 pb-20">
                 {loading ? (
                     <div className="flex justify-center items-center h-[80vh]">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${
+                            theme === 'dark' ? 'border-white' : 'border-blue-500'
+                        }`}></div>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -192,33 +204,70 @@ const ReadComicPage = ({
                                     src={`https://images.weserv.nl/?url=${encodeURIComponent(image)}`}
                                     alt={`Page ${index + 1}`}
                                     className="w-full h-auto"
-                                    loading="lazy"/>
+                                    loading="lazy"
+                                />
                             </div>
                         ))}
                         {images.length === 0 && !loading && (
-                            <div className="flex flex-col items-center justify-center h-[80vh] text-white">
+                            <div className={`flex flex-col items-center justify-center h-[80vh] ${
+                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>
                                 <p>No images found for this chapter</p>
-                                <p className="text-sm text-gray-400 mt-2">Chapter ID: {chapter.endpoint}</p>
+                                <p className={`text-sm ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                } mt-2`}>
+                                    Chapter ID: {chapter.endpoint}
+                                </p>
                             </div>
                         )}
                     </div>
                 )}
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-gray-900 z-50">
+            <div className={`fixed bottom-0 left-0 right-0 ${
+                theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+            } z-50 shadow-lg`}>
                 <div className="flex justify-between items-center p-4">
                     <button
                         onClick={handlePreviousChapter}
-                        disabled={!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1))}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1)) ? 'bg-gray-700 text-gray-500' : 'bg-blue-600 text-white'}`}>
+                        disabled={!localChapterList.find(c => 
+                            parseInt(c.name.replace(/[^0-9]/g, ''), 10) === 
+                            (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1)
+                        )}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                            !localChapterList.find(c => 
+                                parseInt(c.name.replace(/[^0-9]/g, ''), 10) === 
+                                (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) - 1)
+                            )
+                                ? theme === 'dark'
+                                    ? 'bg-gray-800 text-gray-500'
+                                    : 'bg-gray-100 text-gray-400'
+                                : theme === 'dark'
+                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        } transition-colors duration-200`}>
                         <ChevronLeft size={20}/>
                         <span>Previous</span>
                     </button>
 
                     <button
                         onClick={handleNextChapter}
-                        disabled={!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1))}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${!localChapterList.find(c => parseInt(c.name.replace(/[^0-9]/g, ''), 10) === (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1)) ? 'bg-gray-700 text-gray-500' : 'bg-blue-600 text-white'}`}>
+                        disabled={!localChapterList.find(c => 
+                            parseInt(c.name.replace(/[^0-9]/g, ''), 10) === 
+                            (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1)
+                        )}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                            !localChapterList.find(c => 
+                                parseInt(c.name.replace(/[^0-9]/g, ''), 10) === 
+                                (parseInt(chapter.name.replace(/[^0-9]/g, ''), 10) + 1)
+                            )
+                                ? theme === 'dark'
+                                    ? 'bg-gray-800 text-gray-500'
+                                    : 'bg-gray-100 text-gray-400'
+                                : theme === 'dark'
+                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        } transition-colors duration-200`}>
                         <span>Next</span>
                         <ChevronRight size={20}/>
                     </button>

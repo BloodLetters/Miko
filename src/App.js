@@ -1,11 +1,13 @@
-// App.js
 import React from 'react';
-import Layout from './components/Layout';  // Sesuaikan path dengan struktur folder Anda
+import { ThemeProvider } from './utils/Theme';
+import Layout from './components/Layout'; 
 
 function App() {
   return (
     <div className="app">
-      <Layout />
+       <ThemeProvider>
+        <Layout />
+      </ThemeProvider>
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {Search} from 'lucide-react';
 import {getStoredSearchResults} from '../utils/searchUtils';
+import { useTheme } from '../utils/Theme';
 
 const SearchPage = ({onMangaSelect}) => {
+    const {theme} = useTheme();
     const {results, lastQuery, searchSource: initialSource, comicType: initialType} = getStoredSearchResults();
 
     const [searchSource,
@@ -115,7 +117,7 @@ const SearchPage = ({onMangaSelect}) => {
     };
 
     return (
-        <div className="p-4">
+        <div className={`p-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
             <form onSubmit={handleSearch} className="space-y-4">
                 <div className="relative">
                     <input
@@ -124,16 +126,27 @@ const SearchPage = ({onMangaSelect}) => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        inputMode="search"/>
-                    <Search className="absolute right-3 top-3 text-gray-400" size={20}/>
+                        className={`w-full p-3 rounded-lg border ${
+                            theme === 'dark' 
+                                ? 'border-gray-700 bg-gray-800 text-white' 
+                                : 'border-gray-300 bg-white text-gray-900'
+                        } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        inputMode="search"
+                    />
+                    <Search className={`absolute right-3 top-3 ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`} size={20}/>
                 </div>
 
                 <div className="flex gap-4">
                     <select
                         value={tempSource}
                         onChange={(e) => setTempSource(e.target.value)}
-                        className="flex-1 p-3 rounded-lg border border-gray-700 bg-gray-800 text-white">
+                        className={`flex-1 p-3 rounded-lg border ${
+                            theme === 'dark'
+                                ? 'border-gray-700 bg-gray-800 text-white'
+                                : 'border-gray-300 bg-white text-gray-900'
+                        }`}>
                         <option value="Komiku">Komiku</option>
                         <option value="Mangadex">Mangadex</option>
                         <option value="Komikindo">Komikindo</option>
@@ -142,7 +155,11 @@ const SearchPage = ({onMangaSelect}) => {
                     <select
                         value={tempType}
                         onChange={(e) => setTempType(e.target.value)}
-                        className="flex-1 p-3 rounded-lg border border-gray-700 bg-gray-800 text-white">
+                        className={`flex-1 p-3 rounded-lg border ${
+                            theme === 'dark'
+                                ? 'border-gray-700 bg-gray-800 text-white'
+                                : 'border-gray-300 bg-white text-gray-900'
+                        }`}>
                         <option value="Manga">Manga</option>
                         <option value="Manhwa">Manhwa</option>
                         <option value="Manhua">Manhua</option>
@@ -157,19 +174,36 @@ const SearchPage = ({onMangaSelect}) => {
                     return (
                         <button
                             key={index}
-                            ref={isLastElement
-                            ? lastMangaElementRef
-                            : null}
+                            ref={isLastElement ? lastMangaElementRef : null}
                             onClick={() => onMangaSelect(manga, tempSource)}
-                            className="w-full bg-gray-800 rounded-lg shadow-md overflow-hidden flex text-left hover:bg-gray-700">
+                            className={`w-full ${
+                                theme === 'dark'
+                                    ? 'bg-gray-800 hover:bg-gray-700'
+                                    : 'bg-white hover:bg-gray-50'
+                            } rounded-lg shadow-md overflow-hidden flex text-left transition-colors duration-200 border ${
+                                theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                            }`}>
                             <img
                                 src={manga.cover_image || "/api/placeholder/100/150"}
                                 alt={manga.title}
-                                className="w-24 h-32 object-cover"/>
+                                className="w-24 h-32 object-cover"
+                            />
                             <div className="p-3 flex-1">
-                                <h3 className="font-medium text-sm">{manga.title}</h3>
-                                <p className="text-xs text-gray-400 mt-1">{manga.type}</p>
-                                <p className="text-xs text-gray-500 mt-2 line-clamp-2">{manga.synopsis}</p>
+                                <h3 className={`font-medium text-sm ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {manga.title}
+                                </h3>
+                                <p className={`text-xs ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                } mt-1`}>
+                                    {manga.type}
+                                </p>
+                                <p className={`text-xs ${
+                                    theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                                } mt-2 line-clamp-2`}>
+                                    {manga.synopsis}
+                                </p>
                             </div>
                         </button>
                     );
@@ -183,8 +217,18 @@ const SearchPage = ({onMangaSelect}) => {
             )}
 
             {!hasMore && searchResults.length > 0 && (
-                <div className="text-center text-gray-400 mt-8">
+                <div className={`text-center ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                } mt-8`}>
                     <p>No more results available</p>
+                </div>
+            )}
+
+            {searchResults.length === 0 && !isLoading && lastSearchQuery && (
+                <div className={`text-center ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                } mt-8`}>
+                    <p>No results found</p>
                 </div>
             )}
         </div>
