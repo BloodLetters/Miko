@@ -3,11 +3,11 @@ import { useTheme } from '../utils/Theme';
 
 const SettingsPage = () => {
     const { theme, setTheme } = useTheme();
-    const [readingMode, setReadingMode] = useState('vertical');
-    const [language, setLanguage] = useState('en');
-    const [notifications, setNotifications] = useState(true);
-    const [imageQuality, setImageQuality] = useState('high');
-    const [autoUpdate, setAutoUpdate] = useState(true);
+    // const [readingMode, setReadingMode] = useState('vertical');
+    // const [language, setLanguage] = useState('en');
+    // const [notifications, setNotifications] = useState(true);
+    // const [imageQuality, setImageQuality] = useState('high');
+    // const [autoUpdate, setAutoUpdate] = useState(true);
 
     return (
         <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
@@ -42,8 +42,7 @@ const SettingsPage = () => {
                         </div>
                     </div>
 
-                    {/* Reading Settings */}
-                    <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
+                    {/* <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
                         <h2 className="text-lg font-semibold mb-4 text-blue-400">Reading Settings</h2>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
@@ -81,7 +80,6 @@ const SettingsPage = () => {
                         </div>
                     </div>
 
-                    {/* Language Settings */}
                     <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
                         <h2 className="text-lg font-semibold mb-4 text-blue-400">Language</h2>
                         <div className="space-y-4">
@@ -104,7 +102,6 @@ const SettingsPage = () => {
                         </div>
                     </div>
 
-                    {/* Notifications */}
                     <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
                         <h2 className="text-lg font-semibold mb-4 text-blue-400">Notifications</h2>
                         <div className="space-y-4">
@@ -133,9 +130,8 @@ const SettingsPage = () => {
                                 </label>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
-                    {/* About */}
                     <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
                         <h2 className="text-lg font-semibold mb-4 text-blue-400">About</h2>
                         <div className="space-y-2">
