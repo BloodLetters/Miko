@@ -5,11 +5,8 @@
   "dependencies": {
     "@capacitor-community/http": "^1.4.1",
     "@capacitor/android": "^7.0.1",
-    "@capacitor/app": "^7.0.0",
     "@capacitor/cli": "^7.0.1",
     "@capacitor/core": "^7.0.1",
-    "@capacitor/http": "^0.0.2",
-    "@capacitor/preferences": "^7.0.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

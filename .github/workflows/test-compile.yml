@@ -1,9 +1,6 @@
 name: Build and Upload Android APK
 on:
-  workflow_dispatch:  # Allow manual triggering
-  push:
-    tags:
-      - 'v*.*'
+  workflow_dispatch:
 
 permissions:
   contents: write
