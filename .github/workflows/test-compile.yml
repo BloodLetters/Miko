@@ -1,4 +1,4 @@
-name: Build and Upload Android APK
+name: Debug and Upload APK
 on:
   workflow_dispatch:
 
@@ -47,8 +47,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
+          java-version: '21'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
