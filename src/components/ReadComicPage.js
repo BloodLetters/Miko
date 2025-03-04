@@ -197,14 +197,15 @@ const ReadComicPage = ({
                         }`}></div>
                     </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div>
                         {images.map((image, index) => (
                             <div key={index} className="relative w-full">
                                 <img
                                     src={`https://images.weserv.nl/?url=${encodeURIComponent(image)}`}
                                     alt={`Page ${index + 1}`}
-                                    className="w-full h-auto"
+                                    className="w-full h-auto block"
                                     loading="lazy"
+                                    style={{ marginBottom: 0 }}
                                 />
                             </div>
                         ))}
@@ -275,6 +276,6 @@ const ReadComicPage = ({
             </div>
         </div>
     );
-};
+}
 
 export default ReadComicPage;

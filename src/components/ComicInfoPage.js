@@ -35,9 +35,9 @@ const ComicInfoPage = ({manga, source, onBack}) => {
         fetchComicInfo();
     }, [manga.manga_url, source]);
 
-    const saveToHistory = (chapter) => {
-        // ... existing saveToHistory function
-    };
+    // const saveToHistory = (chapter) => {
+    //     // ... existing saveToHistory function
+    // };
 
     if (loading) {
         return (
@@ -59,9 +59,9 @@ const ComicInfoPage = ({manga, source, onBack}) => {
                 onBack={(chapter) => {
                     if (chapter) {
                         setSelectedChapter(chapter);
-                        if (JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
-                            saveToHistory(chapter);
-                        }
+                        // if (JSON.parse(localStorage.getItem('lastReadChapter.name') !== chapter.name)) {
+                        //     saveToHistory(chapter);
+                        // }
                     } else {
                         setSelectedChapter(null);
                     }

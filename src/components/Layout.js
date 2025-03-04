@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Home, Search, History, Settings} from 'lucide-react';
 import { useTheme } from '../utils/Theme';
 import HomePage from './HomePage';
@@ -14,6 +14,28 @@ const Layout = ({children}) => {
     const [selectedManga, setSelectedManga] = useState(null);
     const [currentSource, setCurrentSource] = useState('');
 
+    useEffect(() => {
+        window.history.pushState({ activeTab, selectedManga, currentSource }, '');
+
+        const handlePopState = (event) => {
+            if (event.state) {
+                setActiveTab(event.state.activeTab || 'home');
+                setSelectedManga(event.state.selectedManga);
+                setCurrentSource(event.state.currentSource);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [activeTab, selectedManga, currentSource]);
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+    };
+
     const handleMangaSelect = (manga, source) => {
         if (manga.endpoint && manga.endpoint.includes('chapter')) {
             setSelectedManga({
@@ -24,6 +46,17 @@ const Layout = ({children}) => {
             setSelectedManga(manga);
         }
         setCurrentSource(source);
+    };
+
+    const handleBack = (chapter) => {
+        if (chapter) {
+            setSelectedManga({
+                ...chapter,
+                isFromHistory: true
+            });
+        } else {
+            setSelectedManga(null);
+        }
     };
 
     return (
@@ -38,23 +71,14 @@ const Layout = ({children}) => {
                         ? (<ReadComicPage
                             chapter={selectedManga}
                             source={currentSource}
-                            onBack={(chapter) => {
-                            if (chapter) {
-                                setSelectedManga({
-                                    ...chapter,
-                                    isFromHistory: true
-                                });
-                            } else {
-                                setSelectedManga(null);
-                            }
-                        }}
+                            onBack={handleBack}
                             chapterList={selectedManga.chapter_list || []}
                             manga={selectedManga.manga_info}
                             mangaInfoURL={selectedManga.manga_url}/>)
                         : (<ComicInfoPage
                             manga={selectedManga}
                             source={currentSource}
-                            onBack={() => setSelectedManga(null)}/>))
+                            onBack={() => handleBack(null)}/>))
                     : (
                     <> 
                         {activeTab === 'home' && <HomePage onMangaSelect={handleMangaSelect}/>}
@@ -73,7 +97,7 @@ const Layout = ({children}) => {
                 } border-t`}>
                     <div className="flex justify-around items-center h-16">
                         <button
-                            onClick={() => setActiveTab('home')}
+                            onClick={() => handleTabChange('home')}
                             className={`flex flex-col items-center ${
                                 activeTab === 'home'
                                     ? 'text-blue-500'
@@ -85,7 +109,7 @@ const Layout = ({children}) => {
                             <span className="text-xs mt-1">Home</span>
                         </button>
                         <button
-                            onClick={() => setActiveTab('search')}
+                            onClick={() => handleTabChange('search')}
                             className={`flex flex-col items-center ${
                                 activeTab === 'search'
                                     ? 'text-blue-500'
@@ -97,7 +121,7 @@ const Layout = ({children}) => {
                             <span className="text-xs mt-1">Search</span>
                         </button>
                         <button
-                            onClick={() => setActiveTab('history')}
+                            onClick={() => handleTabChange('history')}
                             className={`flex flex-col items-center ${
                                 activeTab === 'history'
                                     ? 'text-blue-500'
@@ -109,7 +133,7 @@ const Layout = ({children}) => {
                             <span className="text-xs mt-1">History</span>
                         </button>
                         <button
-                            onClick={() => setActiveTab('settings')}
+                            onClick={() => handleTabChange('settings')}
                             className={`flex flex-col items-center ${
                                 activeTab === 'settings'
                                     ? 'text-blue-500'

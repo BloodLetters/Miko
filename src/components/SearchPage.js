@@ -146,10 +146,14 @@ const SearchPage = ({onMangaSelect}) => {
                             theme === 'dark'
                                 ? 'border-gray-700 bg-gray-800 text-white'
                                 : 'border-gray-300 bg-white text-gray-900'
-                        }`}>
-                        <option value="Komiku">Komiku</option>
-                        <option value="Mangadex">Mangadex</option>
-                        <option value="Komikindo">Komikindo</option>
+                        }`}
+                        style={{
+                            color: theme === 'dark' ? '#fff' : '#111827'
+                        }}
+                    >
+                        <option value="Komiku" style={{color: theme === 'dark' ? '#fff' : '#111827'}}>Komiku</option>
+                        <option value="Mangadex" style={{color: theme === 'dark' ? '#fff' : '#111827'}}>Mangadex</option>
+                        <option value="Komikindo" style={{color: theme === 'dark' ? '#fff' : '#111827'}}>Komikindo</option>
                     </select>
 
                     <select
@@ -159,10 +163,14 @@ const SearchPage = ({onMangaSelect}) => {
                             theme === 'dark'
                                 ? 'border-gray-700 bg-gray-800 text-white'
                                 : 'border-gray-300 bg-white text-gray-900'
-                        }`}>
-                        <option value="Manga">Manga</option>
-                        <option value="Manhwa">Manhwa</option>
-                        <option value="Manhua">Manhua</option>
+                        }`}
+                        style={{
+                            color: theme === 'dark' ? '#fff' : '#111827'
+                        }}
+                    >
+                        <option value="Manga" style={{color: theme === 'dark' ? '#fff' : '#111827'}}>Manga</option>
+                        <option value="Manhwa" style={{color: theme === 'dark' ? '#fff' : '#111827'}}>Manhwa</option>
+                        <option value="Manhua" style={{color: theme === 'dark' ? '#fff' : '#111827'}}>Manhua</option>
                     </select>
                 </div>
             </form>
