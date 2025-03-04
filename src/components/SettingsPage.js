@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../utils/Theme';
 
-const version = "1.2"
+const version = "1.2.5"
 
 const SettingsPage = () => {
     const { theme, setTheme } = useTheme();
