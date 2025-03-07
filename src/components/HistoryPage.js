@@ -142,6 +142,19 @@ const HistoryPage = ({ onMangaSelect }) => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className={`flex justify-center items-center h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
+                <div className="relative">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-blue-500 text-xl">M</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={`p-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
             <h1 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -247,7 +260,7 @@ const HistoryPage = ({ onMangaSelect }) => {
                 </div>
             )}
 
-<div className={`mb-4 p-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md`}>
+            <div className={`mb-4 p-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md`}>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                         <button

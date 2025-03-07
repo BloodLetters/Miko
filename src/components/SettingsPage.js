@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useTheme } from '../utils/Theme';
+import { Capacitor } from '@capacitor/core';
 
-const version = "1.2.5"
+const version = "1.2.6"
 
 const SettingsPage = () => {
     const { theme, setTheme } = useTheme();
+    const [ isProxy, setProxy ] = useState(false)
     const [updateStatus, setUpdateStatus] = useState(null);
 
     const checkForUpdates = async () => {
@@ -59,39 +61,38 @@ const SettingsPage = () => {
                         </div>
                     </div>
 
-                    {/* <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
-                        <h2 className="text-lg font-semibold mb-4 text-blue-400">Language</h2>
+                    <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
+                        <h2 className="text-lg font-semibold mb-4 text-blue-400">Image</h2>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <span>Language</span>
-                                <select 
-                                    value={language}
-                                    onChange={(e) => setLanguage(e.target.value)}
-                                    className={`${
-                                        theme === 'dark' 
-                                            ? 'bg-gray-700 text-white' 
-                                            : 'bg-gray-100 text-gray-900'
-                                    } rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500`}
+                                <span>Proxy Image</span>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>On-Progress</p>
+                                <button
+                                    onClick={() => setProxy(!isProxy)}
+                                    className={`relative w-12 h-6 flex items-center rounded-full transition-colors 
+                                        ${isProxy ? 'bg-blue-500' : 'bg-gray-400'}`}
                                 >
-                                    <option value="en">English</option>
-                                    <option value="id">Indonesia</option>
-                                    <option value="ja">Japanese</option>
-                                </select>
+                                    <span 
+                                        className={`absolute left-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform 
+                                            ${isProxy ? 'translate-x-6' : 'translate-x-0'}`}
+                                    />
+                                </button>
                             </div>
                         </div>
-                    </div> */}
+                    </div>
 
                     <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 shadow-lg`}>
                         <h2 className="text-lg font-semibold mb-4 text-blue-400">About</h2>
                         <div className="space-y-2">
                             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Version: v{version}</p>
                             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Built with ❤️ by BloodLetters</p>
-                            <button 
+                            {Capacitor.isNativePlatform() && (
+                                <button 
                                 onClick={checkForUpdates}
-                                className="text-sm text-blue-400 hover:text-blue-300"
-                            >
-                                Check for Updates
-                            </button>
+                                className="text-sm text-blue-400 hover:text-blue-300">
+                                    Check for Updates
+                                </button>
+                            )}
                             
                             {updateStatus && (
                                 <div className={`mt-3 p-2 rounded ${
