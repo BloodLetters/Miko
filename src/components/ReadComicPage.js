@@ -201,7 +201,7 @@ const ReadComicPage = ({
                         {images.map((image, index) => (
                             <div key={index} className="relative w-full">
                                 <img
-                                    src={`https://images.weserv.nl/?url=${encodeURIComponent(image)}`}
+                                    src={`${encodeURIComponent(image)}`}
                                     alt={`Page ${index + 1}`}
                                     className="w-full h-auto block"
                                     loading="lazy"
